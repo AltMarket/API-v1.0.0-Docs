@@ -1735,35 +1735,30 @@ Darkula color scheme from the JetBrains family of IDEs
 </ul>
 </li>
 </ul>
+<p>Request signing should be performed as indicated in the Python example.</p>
 <blockquote>
 <p>Code samples</p>
 </blockquote>
-<pre class="highlight tab tab-python"><code><span class="hljs-keyword">import</span> hashlib
-<span class="hljs-keyword">import</span> hmac
-<span class="hljs-keyword">import</span> time
-<span class="hljs-keyword">import</span> urllib.parse
+<pre class="highlight tab tab-python"><code><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">sign_header</span>(<span class="hljs-params">self,secret,payload, is_json</span>):</span>
+  <span class="hljs-keyword">if</span> is_json:
+    <span class="hljs-keyword">return</span> hmac.new(test_secret, json.dumps(payload).encode(<span class="hljs-string">'utf-8'</span>), hashlib.sha512).hexdigest().upper()
+  <span class="hljs-keyword">else</span>:
+    <span class="hljs-keyword">return</span> hmac.new(test_secret, payload.encode(<span class="hljs-string">'utf-8'</span>), hashlib.sha512).hexdigest().upper()
 
-test_key = <span class="hljs-string">"68c347b0-7c9b-4c44-babb-d3319a326fdc"</span>       <span class="hljs-comment"># Your API Key</span>
-test_secret = <span class="hljs-string">b"2224d39f-4738-4dd3-aa70-bb518358a60d"</span>   <span class="hljs-comment"># Your API Secret</span>
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">header</span>(<span class="hljs-params">self,key,secret,payload,is_json=False</span>):</span>
+  <span class="hljs-keyword">return</span> {
+      <span class="hljs-string">'content-type'</span>: <span class="hljs-string">'application/json'</span>,
+      <span class="hljs-string">'Key'</span>: test_key,
+      <span class="hljs-string">'Sign'</span>: self.sign_header(secret,payload,is_json),
+  } 
 
-<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">sign_header</span>(<span class="hljs-params">secret,payload</span>):</span>
-    payload_bytes = urllib.parse.urlencode(payload).encode(<span class="hljs-string">'utf8'</span>)
-    <span class="hljs-keyword">return</span> hmac.new(test_secret, payload_bytes, hashlib.sha512).hexdigest().upper()
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">timestamp</span>():</span>
+  <span class="hljs-keyword">return</span> datetime.datetime.utcnow().isoformat()
 
-<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">header</span>(<span class="hljs-params">key,secret,payload</span>):</span>
-    <span class="hljs-keyword">return</span> {
-            <span class="hljs-string">'content-type'</span>: <span class="hljs-string">'application/json'</span>,
-            <span class="hljs-string">'Key'</span>: test_key,
-            <span class="hljs-string">'Sign'</span>: sign_header(secret,payload),
-        } 
-
-timestamp = str(int(time.time()))
-req_url = <span class="hljs-string">'https://exchange.alt.market/api'</span>
-payload = { <span class="hljs-string">'ts'</span>: timestamp }
+payload = <span class="hljs-string">"?ts={0}"</span>.format(t)
 headers = header(test_key,test_secret,payload)
-print(<span class="hljs-string">'URL: {0}'</span>.format(req_url)+<span class="hljs-string">'\n'</span>)
-print(<span class="hljs-string">'Header: {0}'</span>.format(headers)+<span class="hljs-string">'\n'</span>)
-print(<span class="hljs-string">'Payload: {0}'</span>.format(payload)+<span class="hljs-string">'\n'</span>)
+print(headers)
+print(payload)
 
 </code></pre>
 <h1 id="altmarket-exchange-api-asset">Asset</h1>

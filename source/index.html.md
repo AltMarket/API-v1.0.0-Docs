@@ -32,35 +32,31 @@ headingLevel: 2
     - Parameter Name: **Key**, in: header. Your API Key.
     - Parameter Name: **Sign**, in: header. An HMAC signed payload.
 
+Request signing should be performed as indicated in the Python example.
+
 > Code samples
 
 ```python
-import hashlib
-import hmac
-import time
-import urllib.parse
+def sign_header(self,secret,payload, is_json):
+  if is_json:
+    return hmac.new(test_secret, json.dumps(payload).encode('utf-8'), hashlib.sha512).hexdigest().upper()
+  else:
+    return hmac.new(test_secret, payload.encode('utf-8'), hashlib.sha512).hexdigest().upper()
 
-test_key = "68c347b0-7c9b-4c44-babb-d3319a326fdc"       # Your API Key
-test_secret = b"2224d39f-4738-4dd3-aa70-bb518358a60d"   # Your API Secret
+def header(self,key,secret,payload,is_json=False):
+  return {
+      'content-type': 'application/json',
+      'Key': test_key,
+      'Sign': self.sign_header(secret,payload,is_json),
+  } 
 
-def sign_header(secret,payload):
-    payload_bytes = urllib.parse.urlencode(payload).encode('utf8')
-    return hmac.new(test_secret, payload_bytes, hashlib.sha512).hexdigest().upper()
+def timestamp():
+  return datetime.datetime.utcnow().isoformat()
 
-def header(key,secret,payload):
-    return {
-            'content-type': 'application/json',
-            'Key': test_key,
-            'Sign': sign_header(secret,payload),
-        } 
-
-timestamp = str(int(time.time()))
-req_url = 'https://exchange.alt.market/api'
-payload = { 'ts': timestamp }
+payload = "?ts={0}".format(t)
 headers = header(test_key,test_secret,payload)
-print('URL: {0}'.format(req_url)+'\n')
-print('Header: {0}'.format(headers)+'\n')
-print('Payload: {0}'.format(payload)+'\n')
+print(headers)
+print(payload)
 
 ```
 
