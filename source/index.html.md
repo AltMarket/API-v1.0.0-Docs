@@ -1,19 +1,20 @@
 ---
-title: Swagger Petstore v1.0.0
+title: AltMarket Exchange API v1
 language_tabs:
-  - shell: Shell
-  - http: HTTP
-  - javascript: JavaScript
   - ruby: Ruby
   - python: Python
-  - php: PHP
-  - java: Java
   - go: Go
-toc_footers:
-  - <a href="https://mermade.github.io/shins/asyncapi.html">See AsyncAPI
-    example</a>
+  - curl: cURL
+  - php: PHP
+language_clients:
+  - ruby: ""
+  - python: ""
+  - go: ""
+  - curl: ""
+  - php: ""
+toc_footers: []
 includes: []
-search: true
+search: false
 highlight_theme: darkula
 headingLevel: 2
 
@@ -21,110 +22,67 @@ headingLevel: 2
 
 <!-- Generator: Widdershins v4.0.1 -->
 
-<h1 id="swagger-petstore">Swagger Petstore v1.0.0</h1>
+<h1 id="altmarket-exchange-api">AltMarket Exchange API v1</h1>
 
 > Scroll down for code samples, example requests and responses. Select a language for code samples from the tabs above or the mobile navigation menu.
 
-:dog: :cat: :rabbit: This is a sample server Petstore server.  You can find out more about Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).  For this sample, you can use the api key `special-key` to test the authorization filters.
-
-Base URLs:
-
-* <a href="http://petstore.swagger.io/v2">http://petstore.swagger.io/v2</a>
-
-<a href="http://swagger.io/terms/">Terms of service</a>
-Email: <a href="mailto:apiteam@swagger.io">Support</a> 
-License: <a href="http://www.apache.org/licenses/LICENSE-2.0.html">Apache 2.0</a>
-
 # Authentication
 
-- oAuth2 authentication. 
-
-    - Flow: implicit
-    - Authorization URL = [http://petstore.swagger.io/oauth/dialog](http://petstore.swagger.io/oauth/dialog)
-
-|Scope|Scope Description|
-|---|---|
-|write:pets|modify pets in your account|
-|read:pets|read your pets|
-
-* API Key (api_key)
-    - Parameter Name: **api_key**, in: header. 
-
-<h1 id="swagger-petstore-pet">pet</h1>
-
-Everything about your Pets
-
-<a href="http://swagger.io">Find out more</a>
-
-## addPet
-
-<a id="opIdaddPet"></a>
+* API Key (Cookie)
+    - Parameter Name: **Key**, in: header. Your API Key.
+    - Parameter Name: **Sign**, in: header. An HMAC signed payload.
 
 > Code samples
 
-```shell
-# You can also use wget
-curl -X POST http://petstore.swagger.io/v2/pet \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer {access-token}'
+```python
+import hashlib
+import hmac
+import time
+import urllib.parse
+
+test_key = "68c347b0-7c9b-4c44-babb-d3319a326fdc"       # Your API Key
+test_secret = b"2224d39f-4738-4dd3-aa70-bb518358a60d"   # Your API Secret
+
+def sign_header(secret,payload):
+    payload_bytes = urllib.parse.urlencode(payload).encode('utf8')
+    return hmac.new(test_secret, payload_bytes, hashlib.sha512).hexdigest().upper()
+
+def header(key,secret,payload):
+    return {
+            'content-type': 'application/json',
+            'Key': test_key,
+            'Sign': sign_header(secret,payload),
+        } 
+
+timestamp = str(int(time.time()))
+req_url = 'https://exchange.alt.market/api'
+payload = { 'ts': timestamp }
+headers = header(test_key,test_secret,payload)
+print('URL: {0}'.format(req_url)+'\n')
+print('Header: {0}'.format(headers)+'\n')
+print('Payload: {0}'.format(payload)+'\n')
 
 ```
 
-```http
-POST http://petstore.swagger.io/v2/pet HTTP/1.1
-Host: petstore.swagger.io
-Content-Type: application/json
+<h1 id="altmarket-exchange-api-asset">Asset</h1>
 
-```
+## List Assets
 
-```javascript
-const inputBody = '{
-  "id": 0,
-  "category": {
-    "id": 0,
-    "name": "string"
-  },
-  "name": "doggie",
-  "photoUrls": [
-    "string"
-  ],
-  "tags": [
-    {
-      "id": 0,
-      "name": "string"
-    }
-  ],
-  "status": "available"
-}';
-const headers = {
-  'Content-Type':'application/json',
-  'Authorization':'Bearer {access-token}'
-};
+<a id="opIdGetAll"></a>
 
-fetch('http://petstore.swagger.io/v2/pet',
-{
-  method: 'POST',
-  body: inputBody,
-  headers: headers
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
+> Code samples
 
 ```ruby
 require 'rest-client'
 require 'json'
 
 headers = {
-  'Content-Type' => 'application/json',
-  'Authorization' => 'Bearer {access-token}'
+  'content-type' => 'application/json',
+  'Key' => 'API_KEY',
+  'Sign' => 'API_SIGN'
 }
 
-result = RestClient.post 'http://petstore.swagger.io/v2/pet',
+result = RestClient.get 'https://exchange.alt.market/api/assets-info',
   params: {
   }, headers: headers
 
@@ -135,13 +93,41 @@ p JSON.parse(result)
 ```python
 import requests
 headers = {
-  'Content-Type': 'application/json',
-  'Authorization': 'Bearer {access-token}'
+  'content-type': 'application/json',
+  'Key': 'API_KEY',
+  'Sign': 'API_SIGN'
 }
 
-r = requests.post('http://petstore.swagger.io/v2/pet', headers = headers)
+r = requests.get('https://exchange.alt.market/api/assets-info', headers = headers)
 
 print(r.json())
+
+```
+
+```go
+package main
+
+import (
+       "bytes"
+       "net/http"
+)
+
+func main() {
+
+    headers := map[string][]string{
+        "content-type": []string{"application/json"},
+        "Key": []string{"API_KEY"},
+        "Sign": []string{"API_SIGN"}
+    }
+
+    data := bytes.NewBuffer([]byte{jsonReq})
+    req, err := http.NewRequest("GET", "/api/assets-info", data)
+    req.Header = headers
+
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    // ...
+}
 
 ```
 
@@ -151,8 +137,9 @@ print(r.json())
 require 'vendor/autoload.php';
 
 $headers = array(
-    'Content-Type' => 'application/json',
-    'Authorization' => 'Bearer {access-token}',
+    'content-type' => 'application/json',
+    'Key' => 'API_KEY',
+    'Sign' => 'API_SIGN'
 );
 
 $client = new \GuzzleHttp\Client();
@@ -161,7 +148,7 @@ $client = new \GuzzleHttp\Client();
 $request_body = array();
 
 try {
-    $response = $client->request('POST','http://petstore.swagger.io/v2/pet', array(
+    $response = $client->request('GET','https://exchange.alt.market/api/assets-info', array(
         'headers' => $headers,
         'json' => $request_body,
        )
@@ -177,20 +164,80 @@ try {
 
 ```
 
-```java
-URL obj = new URL("http://petstore.swagger.io/v2/pet");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("POST");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
+`GET /api/assets-info`
+
+> Example responses
+
+> 200 Response
+
+```
+{"data":[{"id":"string","can_deposit":true,"can_withdraw":true,"image_url":"string","asset_name":"string","withdrawal_fee":0,"scale":0}]}
+```
+
+```json
+{
+  "data": [
+    {
+      "id": "string",
+      "can_deposit": true,
+      "can_withdraw": true,
+      "image_url": "string",
+      "asset_name": "string",
+      "withdrawal_fee": 0,
+      "scale": 0
+    }
+  ]
 }
-in.close();
-System.out.println(response.toString());
+```
+
+<h3 id="getall-responses">Responses</h3>
+
+|Status|Meaning|Description|Schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Success|[AltMarket.Http.Response_1_System.Collections.Generic.IEnumerable_1_AltMarket.Api.AssetResponse_AltMarket_Version_1.0.0.0_Culture_neutral_PublicKeyToken_null_System.Private.CoreLib_Version_4.0.0.0_Culture_neutral_PublicKeyToken_7cec85d7bea7798e_](#schemaqoden.http.response_1_system.collections.generic.ienumerable_1_apilibrary.api.assetresponse_apilibrary_version_1.0.0.0_culture_neutral_publickeytoken_null_system.private.corelib_version_4.0.0.0_culture_neutral_publickeytoken_7cec85d7bea7798e_)|
+
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+HMAC Key/Sign
+</aside>
+
+<h1 id="altmarket-exchange-api-info">Markets</h1>
+
+## Market Data
+
+<a id="opIdGetInfo"></a>
+
+> Code samples
+
+```ruby
+require 'rest-client'
+require 'json'
+
+headers = {
+  'content-type' => 'application/json',
+  'Key' => 'API_KEY',
+  'Sign' => 'API_SIGN'
+}
+
+result = RestClient.get 'https://exchange.alt.market/api/markets',
+  params: {
+  }, headers: headers
+
+p JSON.parse(result)
+
+```
+
+```python
+import requests
+headers = {
+  'content-type': 'application/json',
+  'Key': 'API_KEY',
+  'Sign': 'API_SIGN'
+}
+
+r = requests.get('https://exchange.alt.market/api/markets', headers = headers)
+
+print(r.json())
 
 ```
 
@@ -205,12 +252,13 @@ import (
 func main() {
 
     headers := map[string][]string{
-        "Content-Type": []string{"application/json"},
-        "Authorization": []string{"Bearer {access-token}"},
+        "content-type": []string{"application/json"},
+        "Key": []string{"API_KEY"},
+        "Sign": []string{"API_SIGN"}
     }
 
     data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("POST", "http://petstore.swagger.io/v2/pet", data)
+    req, err := http.NewRequest("GET", "/api/markets", data)
     req.Header = headers
 
     client := &http.Client{}
@@ -220,165 +268,15 @@ func main() {
 
 ```
 
-`POST /pet`
-
-*Add a new pet to the store*
-
-> Body parameter
-
-```json
-{
-  "id": 0,
-  "category": {
-    "id": 0,
-    "name": "string"
-  },
-  "name": "doggie",
-  "photoUrls": [
-    "string"
-  ],
-  "tags": [
-    {
-      "id": 0,
-      "name": "string"
-    }
-  ],
-  "status": "available"
-}
-```
-
-```xml
-<?xml version="1.0" encoding="UTF-8" ?>
-<Pet>
-  <id>0</id>
-  <category>
-    <id>0</id>
-    <name>string</name>
-  </category>
-  <name>doggie</name>
-  <photoUrls>string</photoUrls>
-  <tags>
-    <id>0</id>
-    <name>string</name>
-  </tags>
-  <status>available</status>
-</Pet>
-```
-
-<h3 id="addpet-parameters">Parameters</h3>
-
-|Name|In|Type|Required|Description|
-|---|---|---|---|---|
-|body|body|[Pet](#schemapet)|true|Pet object that needs to be added to the store|
-
-<h3 id="addpet-responses">Responses</h3>
-
-|Status|Meaning|Description|Schema|
-|---|---|---|---|
-|405|[Method Not Allowed](https://tools.ietf.org/html/rfc7231#section-6.5.5)|Invalid input|None|
-
-<aside class="warning">
-To perform this operation, you must be authenticated by means of one of the following methods:
-petstore_auth ( Scopes: write:pets read:pets )
-</aside>
-
-## updatePet
-
-<a id="opIdupdatePet"></a>
-
-> Code samples
-
-```shell
-# You can also use wget
-curl -X PUT http://petstore.swagger.io/v2/pet \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer {access-token}'
-
-```
-
-```http
-PUT http://petstore.swagger.io/v2/pet HTTP/1.1
-Host: petstore.swagger.io
-Content-Type: application/json
-
-```
-
-```javascript
-const inputBody = '{
-  "id": 0,
-  "category": {
-    "id": 0,
-    "name": "string"
-  },
-  "name": "doggie",
-  "photoUrls": [
-    "string"
-  ],
-  "tags": [
-    {
-      "id": 0,
-      "name": "string"
-    }
-  ],
-  "status": "available"
-}';
-const headers = {
-  'Content-Type':'application/json',
-  'Authorization':'Bearer {access-token}'
-};
-
-fetch('http://petstore.swagger.io/v2/pet',
-{
-  method: 'PUT',
-  body: inputBody,
-  headers: headers
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
-
-```ruby
-require 'rest-client'
-require 'json'
-
-headers = {
-  'Content-Type' => 'application/json',
-  'Authorization' => 'Bearer {access-token}'
-}
-
-result = RestClient.put 'http://petstore.swagger.io/v2/pet',
-  params: {
-  }, headers: headers
-
-p JSON.parse(result)
-
-```
-
-```python
-import requests
-headers = {
-  'Content-Type': 'application/json',
-  'Authorization': 'Bearer {access-token}'
-}
-
-r = requests.put('http://petstore.swagger.io/v2/pet', headers = headers)
-
-print(r.json())
-
-```
-
 ```php
 <?php
 
 require 'vendor/autoload.php';
 
 $headers = array(
-    'Content-Type' => 'application/json',
-    'Authorization' => 'Bearer {access-token}',
+    'content-type' => 'application/json',
+    'Key' => 'API_KEY',
+    'Sign' => 'API_SIGN'
 );
 
 $client = new \GuzzleHttp\Client();
@@ -387,7 +285,7 @@ $client = new \GuzzleHttp\Client();
 $request_body = array();
 
 try {
-    $response = $client->request('PUT','http://petstore.swagger.io/v2/pet', array(
+    $response = $client->request('GET','https://exchange.alt.market/api/markets', array(
         'headers' => $headers,
         'json' => $request_body,
        )
@@ -403,20 +301,106 @@ try {
 
 ```
 
-```java
-URL obj = new URL("http://petstore.swagger.io/v2/pet");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("PUT");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
+`GET /api/markets`
+
+> Example responses
+
+> 200 Response
+
+```
+{"serverTime":0,"pairs":{"property1":{"baseAsset":"string","quoteAsset":"string","minPrice":0,"maxPrice":0,"minAmount":0,"hidden":0,"fee":0,"makerFee":0,"makerFeeLimit":0,"takerFee":0,"takerFeeLimit":0,"priceScale":0,"amountScale":0,"status":"Open"},"property2":{"baseAsset":"string","quoteAsset":"string","minPrice":0,"maxPrice":0,"minAmount":0,"hidden":0,"fee":0,"makerFee":0,"makerFeeLimit":0,"takerFee":0,"takerFeeLimit":0,"priceScale":0,"amountScale":0,"status":"Open"}},"plaidPublicKey":"string","environment":"string"}
+```
+
+```json
+{
+  "serverTime": 0,
+  "pairs": {
+    "property1": {
+      "baseAsset": "string",
+      "quoteAsset": "string",
+      "minPrice": 0,
+      "maxPrice": 0,
+      "minAmount": 0,
+      "hidden": 0,
+      "fee": 0,
+      "makerFee": 0,
+      "makerFeeLimit": 0,
+      "takerFee": 0,
+      "takerFeeLimit": 0,
+      "priceScale": 0,
+      "amountScale": 0,
+      "status": "Open"
+    },
+    "property2": {
+      "baseAsset": "string",
+      "quoteAsset": "string",
+      "minPrice": 0,
+      "maxPrice": 0,
+      "minAmount": 0,
+      "hidden": 0,
+      "fee": 0,
+      "makerFee": 0,
+      "makerFeeLimit": 0,
+      "takerFee": 0,
+      "takerFeeLimit": 0,
+      "priceScale": 0,
+      "amountScale": 0,
+      "status": "Open"
+    }
+  },
+  "plaidPublicKey": "string",
+  "environment": "string"
 }
-in.close();
-System.out.println(response.toString());
+```
+
+<h3 id="getinfo-responses">Responses</h3>
+
+|Status|Meaning|Description|Schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Success|[AltMarket.Api.InfoResponse](#schemaapilibrary.api.inforesponse)|
+
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+HMAC Key/Sign
+</aside>
+
+<h1 id="altmarket-exchange-api-trade">Trade</h1>
+
+## Create Order
+
+<a id="opIdCreate"></a>
+
+> Code samples
+
+```ruby
+require 'rest-client'
+require 'json'
+
+headers = {
+  'Content-Type' => 'application/json-patch+json',
+  'Accept' => 'text/plain',
+  'Cookie' => 'API_KEY'
+}
+
+result = RestClient.post 'https://exchange.alt.market/api/order',
+  params: {
+  }, headers: headers
+
+p JSON.parse(result)
+
+```
+
+```python
+import requests
+headers = {
+  'Content-Type': 'application/json-patch+json',
+  'Accept': 'text/plain',
+  'Cookie': 'API_KEY'
+}
+
+r = requests.post('https://exchange.alt.market/api/order', headers = headers)
+
+print(r.json())
 
 ```
 
@@ -431,12 +415,13 @@ import (
 func main() {
 
     headers := map[string][]string{
-        "Content-Type": []string{"application/json"},
-        "Authorization": []string{"Bearer {access-token}"},
+        "Content-Type": []string{"application/json-patch+json"},
+        "Accept": []string{"text/plain"},
+        "Cookie": []string{"API_KEY"},
     }
 
     data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("PUT", "http://petstore.swagger.io/v2/pet", data)
+    req, err := http.NewRequest("POST", "/api/order", data)
     req.Header = headers
 
     client := &http.Client{}
@@ -446,125 +431,123 @@ func main() {
 
 ```
 
-`PUT /pet`
+```php
+<?php
 
-*Update an existing pet*
+require 'vendor/autoload.php';
+
+$headers = array(
+    'Content-Type' => 'application/json-patch+json',
+    'Accept' => 'text/plain',
+    'Cookie' => 'API_KEY',
+);
+
+$client = new \GuzzleHttp\Client();
+
+// Define array of request body.
+$request_body = array();
+
+try {
+    $response = $client->request('POST','https://exchange.alt.market/api/order', array(
+        'headers' => $headers,
+        'json' => $request_body,
+       )
+    );
+    print_r($response->getBody()->getContents());
+ }
+ catch (\GuzzleHttp\Exception\BadResponseException $e) {
+    // handle exception or api errors.
+    print_r($e->getMessage());
+ }
+
+ // ...
+
+```
+
+`POST /api/order`
 
 > Body parameter
 
 ```json
 {
-  "id": 0,
-  "category": {
-    "id": 0,
-    "name": "string"
-  },
-  "name": "doggie",
-  "photoUrls": [
-    "string"
-  ],
-  "tags": [
-    {
-      "id": 0,
-      "name": "string"
-    }
-  ],
-  "status": "available"
+  "order": {
+    "instrument": "string",
+    "type": "string",
+    "amount": 0,
+    "price": 0,
+    "activationPrice": 0,
+    "isLimit": true,
+    "isStop": true
+  }
 }
 ```
 
-```xml
-<?xml version="1.0" encoding="UTF-8" ?>
-<Pet>
-  <id>0</id>
-  <category>
-    <id>0</id>
-    <name>string</name>
-  </category>
-  <name>doggie</name>
-  <photoUrls>string</photoUrls>
-  <tags>
-    <id>0</id>
-    <name>string</name>
-  </tags>
-  <status>available</status>
-</Pet>
-```
-
-<h3 id="updatepet-parameters">Parameters</h3>
+<h3 id="create-parameters">Parameters</h3>
 
 |Name|In|Type|Required|Description|
 |---|---|---|---|---|
-|body|body|[Pet](#schemapet)|true|Pet object that needs to be added to the store|
+|body|body|[AltMarket.Api.OrderRequest](#schemaapilibrary.api.orderrequest)|false|none|
 
-<h3 id="updatepet-responses">Responses</h3>
+> Example responses
+
+> 200 Response
+
+```
+{"order":{"orderId":"string","total":0,"orderType":"Limit","commission":0,"createdAt":"2020-06-04T09:48:43Z","unitsFilled":0,"isPending":true,"status":"Working","type":"string","amount":0,"price":0,"stopPrice":0,"isLimit":true,"instrument":"string","side":"Buy"}}
+```
+
+```json
+{
+  "order": {
+    "orderId": "string",
+    "total": 0,
+    "orderType": "Limit",
+    "commission": 0,
+    "createdAt": "2020-06-04T09:48:43Z",
+    "unitsFilled": 0,
+    "isPending": true,
+    "status": "Working",
+    "type": "string",
+    "amount": 0,
+    "price": 0,
+    "stopPrice": 0,
+    "isLimit": true,
+    "instrument": "string",
+    "side": "Buy"
+  }
+}
+```
+
+<h3 id="create-responses">Responses</h3>
 
 |Status|Meaning|Description|Schema|
 |---|---|---|---|
-|400|[Bad Request](https://tools.ietf.org/html/rfc7231#section-6.5.1)|Invalid ID supplied|None|
-|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|Pet not found|None|
-|405|[Method Not Allowed](https://tools.ietf.org/html/rfc7231#section-6.5.5)|Validation exception|None|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Success|[AltMarket.Api.OrderResponse](#schemaapilibrary.api.orderresponse)|
 
 <aside class="warning">
 To perform this operation, you must be authenticated by means of one of the following methods:
-petstore_auth ( Scopes: write:pets read:pets )
+HMAC Key/Sign
 </aside>
 
-## findPetsByStatus
+## Cancel Order
 
-<a id="opIdfindPetsByStatus"></a>
+<a id="opIdCancel"></a>
 
 > Code samples
-
-```shell
-# You can also use wget
-curl -X GET http://petstore.swagger.io/v2/pet/findByStatus?status=available \
-  -H 'Accept: application/xml' \
-  -H 'Authorization: Bearer {access-token}'
-
-```
-
-```http
-GET http://petstore.swagger.io/v2/pet/findByStatus?status=available HTTP/1.1
-Host: petstore.swagger.io
-Accept: application/xml
-
-```
-
-```javascript
-
-const headers = {
-  'Accept':'application/xml',
-  'Authorization':'Bearer {access-token}'
-};
-
-fetch('http://petstore.swagger.io/v2/pet/findByStatus?status=available',
-{
-  method: 'GET',
-
-  headers: headers
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
 
 ```ruby
 require 'rest-client'
 require 'json'
 
 headers = {
-  'Accept' => 'application/xml',
-  'Authorization' => 'Bearer {access-token}'
+  'content-type' => 'application/json',
+  'Key' => 'API_KEY',
+  'Sign' => 'API_SIGN'
 }
 
-result = RestClient.get 'http://petstore.swagger.io/v2/pet/findByStatus',
+result = RestClient.delete 'https://exchange.alt.market/api/orders/{orderId}',
   params: {
-  'status' => 'array[string]'
-}, headers: headers
+  }, headers: headers
 
 p JSON.parse(result)
 
@@ -573,17 +556,367 @@ p JSON.parse(result)
 ```python
 import requests
 headers = {
-  'Accept': 'application/xml',
-  'Authorization': 'Bearer {access-token}'
+  'content-type': 'application/json',
+  'Key': 'API_KEY',
+  'Sign': 'API_SIGN'
 }
 
-r = requests.get('http://petstore.swagger.io/v2/pet/findByStatus', params={
-  'status': [
-  "available"
+r = requests.delete('https://exchange.alt.market/api/orders/{orderId}', headers = headers)
+
+print(r.json())
+
+```
+
+```go
+package main
+
+import (
+       "bytes"
+       "net/http"
+)
+
+func main() {
+
+    headers := map[string][]string{
+        "content-type": []string{"application/json"},
+        "Key": []string{"API_KEY"},
+        "Sign": []string{"API_SIGN"}
+    }
+
+    data := bytes.NewBuffer([]byte{jsonReq})
+    req, err := http.NewRequest("DELETE", "/api/orders/{orderId}", data)
+    req.Header = headers
+
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    // ...
+}
+
+```
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+$headers = array(
+    'content-type' => 'application/json',
+    'Key' => 'API_KEY',
+    'Sign' => 'API_SIGN'
+);
+
+$client = new \GuzzleHttp\Client();
+
+// Define array of request body.
+$request_body = array();
+
+try {
+    $response = $client->request('DELETE','https://exchange.alt.market/api/orders/{orderId}', array(
+        'headers' => $headers,
+        'json' => $request_body,
+       )
+    );
+    print_r($response->getBody()->getContents());
+ }
+ catch (\GuzzleHttp\Exception\BadResponseException $e) {
+    // handle exception or api errors.
+    print_r($e->getMessage());
+ }
+
+ // ...
+
+```
+
+`DELETE /api/orders/{orderId}`
+
+<h3 id="cancel-parameters">Parameters</h3>
+
+|Name|In|Type|Required|Description|
+|---|---|---|---|---|
+|orderId|path|integer(int64)|true|none|
+
+> Example responses
+
+> 200 Response
+
+```
+{"order":{"orderId":"string","total":0,"orderType":"Limit","commission":0,"createdAt":"2020-06-04T09:48:43Z","unitsFilled":0,"isPending":true,"status":"Working","type":"string","amount":0,"price":0,"stopPrice":0,"isLimit":true,"instrument":"string","side":"Buy"}}
+```
+
+```json
+{
+  "order": {
+    "orderId": "string",
+    "total": 0,
+    "orderType": "Limit",
+    "commission": 0,
+    "createdAt": "2020-06-04T09:48:43Z",
+    "unitsFilled": 0,
+    "isPending": true,
+    "status": "Working",
+    "type": "string",
+    "amount": 0,
+    "price": 0,
+    "stopPrice": 0,
+    "isLimit": true,
+    "instrument": "string",
+    "side": "Buy"
+  }
+}
+```
+
+<h3 id="cancel-responses">Responses</h3>
+
+|Status|Meaning|Description|Schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Success|[AltMarket.Api.OrderResponse](#schemaapilibrary.api.orderresponse)|
+
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+HMAC Key/Sign
+</aside>
+
+## Open Orders
+
+<a id="opIdMy"></a>
+
+> Code samples
+
+```ruby
+require 'rest-client'
+require 'json'
+
+headers = {
+  'content-type' => 'application/json',
+  'Key' => 'API_KEY',
+  'Sign' => 'API_SIGN'
+}
+
+result = RestClient.get 'https://exchange.alt.market/api/orders/open',
+  params: {
+  }, headers: headers
+
+p JSON.parse(result)
+
+```
+
+```python
+import requests
+headers = {
+  'content-type': 'application/json',
+  'Key': 'API_KEY',
+  'Sign': 'API_SIGN'
+}
+
+r = requests.get('https://exchange.alt.market/api/orders/open', headers = headers)
+
+print(r.json())
+
+```
+
+```go
+package main
+
+import (
+       "bytes"
+       "net/http"
+)
+
+func main() {
+
+    headers := map[string][]string{
+        "content-type": []string{"application/json"},
+        "Key": []string{"API_KEY"},
+        "Sign": []string{"API_SIGN"}
+    }
+
+    data := bytes.NewBuffer([]byte{jsonReq})
+    req, err := http.NewRequest("GET", "/api/orders/open", data)
+    req.Header = headers
+
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    // ...
+}
+
+```
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+$headers = array(
+    'content-type' => 'application/json',
+    'Key' => 'API_KEY',
+    'Sign' => 'API_SIGN'
+);
+
+$client = new \GuzzleHttp\Client();
+
+// Define array of request body.
+$request_body = array();
+
+try {
+    $response = $client->request('GET','https://exchange.alt.market/api/orders/open', array(
+        'headers' => $headers,
+        'json' => $request_body,
+       )
+    );
+    print_r($response->getBody()->getContents());
+ }
+ catch (\GuzzleHttp\Exception\BadResponseException $e) {
+    // handle exception or api errors.
+    print_r($e->getMessage());
+ }
+
+ // ...
+
+```
+
+`GET /api/orders/open`
+
+> Example responses
+
+> 200 Response
+
+```
+[{"orderId":"string","total":0,"orderType":"Limit","commission":0,"createdAt":"2020-06-04T09:48:43Z","unitsFilled":0,"isPending":true,"status":"Working","type":"string","amount":0,"price":0,"stopPrice":0,"isLimit":true,"instrument":"string","side":"Buy"}]
+```
+
+```json
+[
+  {
+    "orderId": "string",
+    "total": 0,
+    "orderType": "Limit",
+    "commission": 0,
+    "createdAt": "2020-06-04T09:48:43Z",
+    "unitsFilled": 0,
+    "isPending": true,
+    "status": "Working",
+    "type": "string",
+    "amount": 0,
+    "price": 0,
+    "stopPrice": 0,
+    "isLimit": true,
+    "instrument": "string",
+    "side": "Buy"
+  }
 ]
-}, headers = headers)
+```
+
+<h3 id="my-responses">Responses</h3>
+
+|Status|Meaning|Description|Schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Success|Inline|
+
+<h3 id="my-responseschema">Response Schema</h3>
+
+Status Code **200**
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+|*anonymous*|[[AltMarket.Api.OrderInfoResponse](#schemaapilibrary.api.orderinforesponse)]|false|none|none|
+|» orderId|string|false|none|none|
+|» total|number(double)|false|none|none|
+|» orderType|string|false|none|none|
+|» commission|number(double)|false|none|none|
+|» createdAt|string(date-time)|false|none|none|
+|» unitsFilled|number(double)|false|none|none|
+|» isPending|boolean|false|none|none|
+|» status|string|false|none|none|
+|» type|string|false|none|none|
+|» amount|number(double)|false|none|none|
+|» price|number(double)|false|none|none|
+|» stopPrice|number(double)|false|none|none|
+|» isLimit|boolean|false|none|none|
+|» instrument|string|false|none|none|
+|» side|string|false|none|none|
+
+#### Enumerated Values
+
+|Property|Value|
+|---|---|
+|orderType|Limit|
+|orderType|Market|
+|orderType|StopLimit|
+|orderType|StopMarket|
+|status|Working|
+|status|Rejected|
+|status|Cancelled|
+|status|Completed|
+|side|Buy|
+|side|Sell|
+
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+HMAC Key/Sign
+</aside>
+
+## Cancel All Active Orders
+
+<a id="opIdCancelAllActiveOrders"></a>
+
+> Code samples
+
+```ruby
+require 'rest-client'
+require 'json'
+
+headers = {
+  'content-type' => 'application/json',
+  'Key' => 'API_KEY',
+  'Sign' => 'API_SIGN'
+}
+
+result = RestClient.delete 'https://exchange.alt.market/api/orders',
+  params: {
+  }, headers: headers
+
+p JSON.parse(result)
+
+```
+
+```python
+import requests
+headers = {
+  'content-type': 'application/json',
+  'Key': 'API_KEY',
+  'Sign': 'API_SIGN'
+}
+
+r = requests.delete('https://exchange.alt.market/api/orders', headers = headers)
 
 print(r.json())
+
+```
+
+```go
+package main
+
+import (
+       "bytes"
+       "net/http"
+)
+
+func main() {
+
+    headers := map[string][]string{
+        "content-type": []string{"application/json"},
+        "Key": []string{"API_KEY"},
+        "Sign": []string{"API_SIGN"}
+    }
+
+    data := bytes.NewBuffer([]byte{jsonReq})
+    req, err := http.NewRequest("DELETE", "/api/orders", data)
+    req.Header = headers
+
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    // ...
+}
 
 ```
 
@@ -593,8 +926,9 @@ print(r.json())
 require 'vendor/autoload.php';
 
 $headers = array(
-    'Accept' => 'application/xml',
-    'Authorization' => 'Bearer {access-token}',
+    'content-type' => 'application/json',
+    'Key' => 'API_KEY',
+    'Sign' => 'API_SIGN'
 );
 
 $client = new \GuzzleHttp\Client();
@@ -603,7 +937,7 @@ $client = new \GuzzleHttp\Client();
 $request_body = array();
 
 try {
-    $response = $client->request('GET','http://petstore.swagger.io/v2/pet/findByStatus', array(
+    $response = $client->request('DELETE','https://exchange.alt.market/api/orders', array(
         'headers' => $headers,
         'json' => $request_body,
        )
@@ -619,20 +953,68 @@ try {
 
 ```
 
-```java
-URL obj = new URL("http://petstore.swagger.io/v2/pet/findByStatus?status=available");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("GET");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
+`DELETE /api/orders`
+
+> Example responses
+
+> 200 Response
+
+```
+{"data":0}
+```
+
+```json
+{
+  "data": 0
 }
-in.close();
-System.out.println(response.toString());
+```
+
+<h3 id="cancelallactiveorders-responses">Responses</h3>
+
+|Status|Meaning|Description|Schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Success|[AltMarket.Http.Response_1_System.Int32_System.Private.CoreLib_Version_4.0.0.0_Culture_neutral_PublicKeyToken_7cec85d7bea7798e_](#schemaqoden.http.response_1_system.int32_system.private.corelib_version_4.0.0.0_culture_neutral_publickeytoken_7cec85d7bea7798e_)|
+
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+HMAC Key/Sign
+</aside>
+
+## Order History
+
+<a id="opIdOrderHistory"></a>
+
+> Code samples
+
+```ruby
+require 'rest-client'
+require 'json'
+
+headers = {
+  'content-type' => 'application/json',
+  'Key' => 'API_KEY',
+  'Sign' => 'API_SIGN'
+}
+
+result = RestClient.get 'https://exchange.alt.market/api/order_history',
+  params: {
+  }, headers: headers
+
+p JSON.parse(result)
+
+```
+
+```python
+import requests
+headers = {
+  'content-type': 'application/json',
+  'Key': 'API_KEY',
+  'Sign': 'API_SIGN'
+}
+
+r = requests.get('https://exchange.alt.market/api/order_history', headers = headers)
+
+print(r.json())
 
 ```
 
@@ -647,12 +1029,13 @@ import (
 func main() {
 
     headers := map[string][]string{
-        "Accept": []string{"application/xml"},
-        "Authorization": []string{"Bearer {access-token}"},
+        "content-type": []string{"application/json"},
+        "Key": []string{"API_KEY"},
+        "Sign": []string{"API_SIGN"}
     }
 
     data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("GET", "http://petstore.swagger.io/v2/pet/findByStatus", data)
+    req, err := http.NewRequest("GET", "/api/order_history", data)
     req.Header = headers
 
     client := &http.Client{}
@@ -662,622 +1045,128 @@ func main() {
 
 ```
 
-`GET /pet/findByStatus`
+```php
+<?php
 
-*Finds Pets by status*
+require 'vendor/autoload.php';
 
-Multiple status values can be provided with comma separated strings
+$headers = array(
+    'content-type' => 'application/json',
+    'Key' => 'API_KEY',
+    'Sign' => 'API_SIGN'
+);
 
-<h3 id="findpetsbystatus-parameters">Parameters</h3>
+$client = new \GuzzleHttp\Client();
+
+// Define array of request body.
+$request_body = array();
+
+try {
+    $response = $client->request('GET','https://exchange.alt.market/api/order_history', array(
+        'headers' => $headers,
+        'json' => $request_body,
+       )
+    );
+    print_r($response->getBody()->getContents());
+ }
+ catch (\GuzzleHttp\Exception\BadResponseException $e) {
+    // handle exception or api errors.
+    print_r($e->getMessage());
+ }
+
+ // ...
+
+```
+
+`GET /api/order_history`
+
+<h3 id="orderhistory-parameters">Parameters</h3>
 
 |Name|In|Type|Required|Description|
 |---|---|---|---|---|
-|status|query|array[string]|true|Status values that need to be considered for filter|
+|Market|query|string|false|none|
+|Side|query|string|false|none|
+|StartDate|query|string(date-time)|false|none|
+|EndDate|query|string(date-time)|false|none|
+|AscOrder|query|array[string]|false|none|
+|DescOrder|query|array[string]|false|none|
+|IsHideCanceled|query|boolean|false|none|
+|Page|query|integer(int32)|false|none|
+|PerPage|query|integer(int32)|false|none|
 
 #### Enumerated Values
 
 |Parameter|Value|
 |---|---|
-|status|available|
-|status|pending|
-|status|sold|
+|Side|Buy|
+|Side|Sell|
 
 > Example responses
 
 > 200 Response
 
-```xml
-<?xml version="1.0" encoding="UTF-8" ?>
-<id>0</id>
-<category>
-  <id>0</id>
-  <name>string</name>
-</category>
-<name>doggie</name>
-<photoUrls>string</photoUrls>
-<tags>
-  <id>0</id>
-  <name>string</name>
-</tags>
-<status>available</status>
 ```
-
-```json
-[
-  {
-    "id": 0,
-    "category": {
-      "id": 0,
-      "name": "string"
-    },
-    "name": "doggie",
-    "photoUrls": [
-      "string"
-    ],
-    "tags": [
-      {
-        "id": 0,
-        "name": "string"
-      }
-    ],
-    "status": "available"
-  }
-]
-```
-
-<h3 id="findpetsbystatus-responses">Responses</h3>
-
-|Status|Meaning|Description|Schema|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|successful operation|Inline|
-|400|[Bad Request](https://tools.ietf.org/html/rfc7231#section-6.5.1)|Invalid status value|None|
-
-<h3 id="findpetsbystatus-responseschema">Response Schema</h3>
-
-Status Code **200**
-
-|Name|Type|Required|Restrictions|Description|
-|---|---|---|---|---|
-|*anonymous*|[[Pet](#schemapet)]|false|none|none|
-|» id|integer(int64)|false|none|none|
-|» category|[Category](#schemacategory)|false|none|none|
-|»» id|integer(int64)|false|none|none|
-|»» name|string|false|none|none|
-|» name|string|true|none|none|
-|» photoUrls|[string]|true|none|none|
-|» tags|[[Tag](#schematag)]|false|none|none|
-|»» id|integer(int64)|false|none|none|
-|»» name|string|false|none|none|
-|» status|string|false|none|pet status in the store|
-
-#### Enumerated Values
-
-|Property|Value|
-|---|---|
-|status|available|
-|status|pending|
-|status|sold|
-
-<aside class="warning">
-To perform this operation, you must be authenticated by means of one of the following methods:
-petstore_auth ( Scopes: write:pets read:pets )
-</aside>
-
-## findPetsByTags
-
-<a id="opIdfindPetsByTags"></a>
-
-> Code samples
-
-```shell
-# You can also use wget
-curl -X GET http://petstore.swagger.io/v2/pet/findByTags?tags=string \
-  -H 'Accept: application/xml' \
-  -H 'Authorization: Bearer {access-token}'
-
-```
-
-```http
-GET http://petstore.swagger.io/v2/pet/findByTags?tags=string HTTP/1.1
-Host: petstore.swagger.io
-Accept: application/xml
-
-```
-
-```javascript
-
-const headers = {
-  'Accept':'application/xml',
-  'Authorization':'Bearer {access-token}'
-};
-
-fetch('http://petstore.swagger.io/v2/pet/findByTags?tags=string',
-{
-  method: 'GET',
-
-  headers: headers
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
-
-```ruby
-require 'rest-client'
-require 'json'
-
-headers = {
-  'Accept' => 'application/xml',
-  'Authorization' => 'Bearer {access-token}'
-}
-
-result = RestClient.get 'http://petstore.swagger.io/v2/pet/findByTags',
-  params: {
-  'tags' => 'array[string]'
-}, headers: headers
-
-p JSON.parse(result)
-
-```
-
-```python
-import requests
-headers = {
-  'Accept': 'application/xml',
-  'Authorization': 'Bearer {access-token}'
-}
-
-r = requests.get('http://petstore.swagger.io/v2/pet/findByTags', params={
-  'tags': [
-  "string"
-]
-}, headers = headers)
-
-print(r.json())
-
-```
-
-```php
-<?php
-
-require 'vendor/autoload.php';
-
-$headers = array(
-    'Accept' => 'application/xml',
-    'Authorization' => 'Bearer {access-token}',
-);
-
-$client = new \GuzzleHttp\Client();
-
-// Define array of request body.
-$request_body = array();
-
-try {
-    $response = $client->request('GET','http://petstore.swagger.io/v2/pet/findByTags', array(
-        'headers' => $headers,
-        'json' => $request_body,
-       )
-    );
-    print_r($response->getBody()->getContents());
- }
- catch (\GuzzleHttp\Exception\BadResponseException $e) {
-    // handle exception or api errors.
-    print_r($e->getMessage());
- }
-
- // ...
-
-```
-
-```java
-URL obj = new URL("http://petstore.swagger.io/v2/pet/findByTags?tags=string");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("GET");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
-}
-in.close();
-System.out.println(response.toString());
-
-```
-
-```go
-package main
-
-import (
-       "bytes"
-       "net/http"
-)
-
-func main() {
-
-    headers := map[string][]string{
-        "Accept": []string{"application/xml"},
-        "Authorization": []string{"Bearer {access-token}"},
-    }
-
-    data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("GET", "http://petstore.swagger.io/v2/pet/findByTags", data)
-    req.Header = headers
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    // ...
-}
-
-```
-
-`GET /pet/findByTags`
-
-*Finds Pets by tags*
-
-Muliple tags can be provided with comma separated strings. Use tag1, tag2, tag3 for testing.
-
-<h3 id="findpetsbytags-parameters">Parameters</h3>
-
-|Name|In|Type|Required|Description|
-|---|---|---|---|---|
-|tags|query|array[string]|true|Tags to filter by|
-
-> Example responses
-
-> 200 Response
-
-```xml
-<?xml version="1.0" encoding="UTF-8" ?>
-<id>0</id>
-<category>
-  <id>0</id>
-  <name>string</name>
-</category>
-<name>doggie</name>
-<photoUrls>string</photoUrls>
-<tags>
-  <id>0</id>
-  <name>string</name>
-</tags>
-<status>available</status>
-```
-
-```json
-[
-  {
-    "id": 0,
-    "category": {
-      "id": 0,
-      "name": "string"
-    },
-    "name": "doggie",
-    "photoUrls": [
-      "string"
-    ],
-    "tags": [
-      {
-        "id": 0,
-        "name": "string"
-      }
-    ],
-    "status": "available"
-  }
-]
-```
-
-<h3 id="findpetsbytags-responses">Responses</h3>
-
-|Status|Meaning|Description|Schema|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|successful operation|Inline|
-|400|[Bad Request](https://tools.ietf.org/html/rfc7231#section-6.5.1)|Invalid tag value|None|
-
-<h3 id="findpetsbytags-responseschema">Response Schema</h3>
-
-Status Code **200**
-
-|Name|Type|Required|Restrictions|Description|
-|---|---|---|---|---|
-|*anonymous*|[[Pet](#schemapet)]|false|none|none|
-|» id|integer(int64)|false|none|none|
-|» category|[Category](#schemacategory)|false|none|none|
-|»» id|integer(int64)|false|none|none|
-|»» name|string|false|none|none|
-|» name|string|true|none|none|
-|» photoUrls|[string]|true|none|none|
-|» tags|[[Tag](#schematag)]|false|none|none|
-|»» id|integer(int64)|false|none|none|
-|»» name|string|false|none|none|
-|» status|string|false|none|pet status in the store|
-
-#### Enumerated Values
-
-|Property|Value|
-|---|---|
-|status|available|
-|status|pending|
-|status|sold|
-
-<aside class="warning">
-To perform this operation, you must be authenticated by means of one of the following methods:
-petstore_auth ( Scopes: write:pets read:pets )
-</aside>
-
-## getPetById
-
-<a id="opIdgetPetById"></a>
-
-> Code samples
-
-```shell
-# You can also use wget
-curl -X GET http://petstore.swagger.io/v2/pet/{petId} \
-  -H 'Accept: application/xml' \
-  -H 'api_key: API_KEY'
-
-```
-
-```http
-GET http://petstore.swagger.io/v2/pet/{petId} HTTP/1.1
-Host: petstore.swagger.io
-Accept: application/xml
-
-```
-
-```javascript
-
-const headers = {
-  'Accept':'application/xml',
-  'api_key':'API_KEY'
-};
-
-fetch('http://petstore.swagger.io/v2/pet/{petId}',
-{
-  method: 'GET',
-
-  headers: headers
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
-
-```ruby
-require 'rest-client'
-require 'json'
-
-headers = {
-  'Accept' => 'application/xml',
-  'api_key' => 'API_KEY'
-}
-
-result = RestClient.get 'http://petstore.swagger.io/v2/pet/{petId}',
-  params: {
-  }, headers: headers
-
-p JSON.parse(result)
-
-```
-
-```python
-import requests
-headers = {
-  'Accept': 'application/xml',
-  'api_key': 'API_KEY'
-}
-
-r = requests.get('http://petstore.swagger.io/v2/pet/{petId}', headers = headers)
-
-print(r.json())
-
-```
-
-```php
-<?php
-
-require 'vendor/autoload.php';
-
-$headers = array(
-    'Accept' => 'application/xml',
-    'api_key' => 'API_KEY',
-);
-
-$client = new \GuzzleHttp\Client();
-
-// Define array of request body.
-$request_body = array();
-
-try {
-    $response = $client->request('GET','http://petstore.swagger.io/v2/pet/{petId}', array(
-        'headers' => $headers,
-        'json' => $request_body,
-       )
-    );
-    print_r($response->getBody()->getContents());
- }
- catch (\GuzzleHttp\Exception\BadResponseException $e) {
-    // handle exception or api errors.
-    print_r($e->getMessage());
- }
-
- // ...
-
-```
-
-```java
-URL obj = new URL("http://petstore.swagger.io/v2/pet/{petId}");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("GET");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
-}
-in.close();
-System.out.println(response.toString());
-
-```
-
-```go
-package main
-
-import (
-       "bytes"
-       "net/http"
-)
-
-func main() {
-
-    headers := map[string][]string{
-        "Accept": []string{"application/xml"},
-        "api_key": []string{"API_KEY"},
-    }
-
-    data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("GET", "http://petstore.swagger.io/v2/pet/{petId}", data)
-    req.Header = headers
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    // ...
-}
-
-```
-
-`GET /pet/{petId}`
-
-*Find pet by ID*
-
-Returns a single pet
-
-<h3 id="getpetbyid-parameters">Parameters</h3>
-
-|Name|In|Type|Required|Description|
-|---|---|---|---|---|
-|petId|path|integer(int64)|true|ID of pet to return|
-
-> Example responses
-
-> 200 Response
-
-```xml
-<?xml version="1.0" encoding="UTF-8" ?>
-<Pet>
-  <id>0</id>
-  <category>
-    <id>0</id>
-    <name>string</name>
-  </category>
-  <name>doggie</name>
-  <photoUrls>string</photoUrls>
-  <tags>
-    <id>0</id>
-    <name>string</name>
-  </tags>
-  <status>available</status>
-</Pet>
+{"filters":{},"paging":{"page":0,"per_page":0,"total":0},"data":[{"orderId":"string","total":0,"orderType":"Limit","commission":0,"createdAt":"2020-06-04T09:48:43Z","unitsFilled":0,"isPending":true,"status":"Working","type":"string","amount":0,"price":0,"stopPrice":0,"isLimit":true,"instrument":"string","side":"Buy"}]}
 ```
 
 ```json
 {
-  "id": 0,
-  "category": {
-    "id": 0,
-    "name": "string"
+  "filters": {},
+  "paging": {
+    "page": 0,
+    "per_page": 0,
+    "total": 0
   },
-  "name": "doggie",
-  "photoUrls": [
-    "string"
-  ],
-  "tags": [
+  "data": [
     {
-      "id": 0,
-      "name": "string"
+      "orderId": "string",
+      "total": 0,
+      "orderType": "Limit",
+      "commission": 0,
+      "createdAt": "2020-06-04T09:48:43Z",
+      "unitsFilled": 0,
+      "isPending": true,
+      "status": "Working",
+      "type": "string",
+      "amount": 0,
+      "price": 0,
+      "stopPrice": 0,
+      "isLimit": true,
+      "instrument": "string",
+      "side": "Buy"
     }
-  ],
-  "status": "available"
+  ]
 }
 ```
 
-<h3 id="getpetbyid-responses">Responses</h3>
+<h3 id="orderhistory-responses">Responses</h3>
 
 |Status|Meaning|Description|Schema|
 |---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|successful operation|[Pet](#schemapet)|
-|400|[Bad Request](https://tools.ietf.org/html/rfc7231#section-6.5.1)|Invalid ID supplied|None|
-|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|Pet not found|None|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Success|[AltMarket.Http.FilteredResponse_1_AltMarket.Api.OrderInfoResponse_AltMarket_Version_1.0.0.0_Culture_neutral_PublicKeyToken_null_](#schemaqoden.http.filteredresponse_1_apilibrary.api.orderinforesponse_apilibrary_version_1.0.0.0_culture_neutral_publickeytoken_null_)|
 
 <aside class="warning">
 To perform this operation, you must be authenticated by means of one of the following methods:
-api_key
+HMAC Key/Sign
 </aside>
 
-## updatePetWithForm
+## Get Trade History 
 
-<a id="opIdupdatePetWithForm"></a>
+<a id="opIdGetTradeHistoryAsync"></a>
 
 > Code samples
-
-```shell
-# You can also use wget
-curl -X POST http://petstore.swagger.io/v2/pet/{petId} \
-  -H 'Content-Type: application/x-www-form-urlencoded' \
-  -H 'Authorization: Bearer {access-token}'
-
-```
-
-```http
-POST http://petstore.swagger.io/v2/pet/{petId} HTTP/1.1
-Host: petstore.swagger.io
-Content-Type: application/x-www-form-urlencoded
-
-```
-
-```javascript
-const inputBody = '{
-  "name": "string",
-  "status": "string"
-}';
-const headers = {
-  'Content-Type':'application/x-www-form-urlencoded',
-  'Authorization':'Bearer {access-token}'
-};
-
-fetch('http://petstore.swagger.io/v2/pet/{petId}',
-{
-  method: 'POST',
-  body: inputBody,
-  headers: headers
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
 
 ```ruby
 require 'rest-client'
 require 'json'
 
 headers = {
-  'Content-Type' => 'application/x-www-form-urlencoded',
-  'Authorization' => 'Bearer {access-token}'
+  'content-type' => 'application/json',
+  'Key' => 'API_KEY',
+  'Sign' => 'API_SIGN'
 }
 
-result = RestClient.post 'http://petstore.swagger.io/v2/pet/{petId}',
+result = RestClient.get 'https://exchange.alt.market/api/trade_history',
   params: {
   }, headers: headers
 
@@ -1288,13 +1177,41 @@ p JSON.parse(result)
 ```python
 import requests
 headers = {
-  'Content-Type': 'application/x-www-form-urlencoded',
-  'Authorization': 'Bearer {access-token}'
+  'content-type': 'application/json',
+  'Key': 'API_KEY',
+  'Sign': 'API_SIGN'
 }
 
-r = requests.post('http://petstore.swagger.io/v2/pet/{petId}', headers = headers)
+r = requests.get('https://exchange.alt.market/api/trade_history', headers = headers)
 
 print(r.json())
+
+```
+
+```go
+package main
+
+import (
+       "bytes"
+       "net/http"
+)
+
+func main() {
+
+    headers := map[string][]string{
+        "content-type": []string{"application/json"},
+        "Key": []string{"API_KEY"},
+        "Sign": []string{"API_SIGN"}
+    }
+
+    data := bytes.NewBuffer([]byte{jsonReq})
+    req, err := http.NewRequest("GET", "/api/trade_history", data)
+    req.Header = headers
+
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    // ...
+}
 
 ```
 
@@ -1304,8 +1221,9 @@ print(r.json())
 require 'vendor/autoload.php';
 
 $headers = array(
-    'Content-Type' => 'application/x-www-form-urlencoded',
-    'Authorization' => 'Bearer {access-token}',
+    'content-type' => 'application/json',
+    'Key' => 'API_KEY',
+    'Sign' => 'API_SIGN'
 );
 
 $client = new \GuzzleHttp\Client();
@@ -1314,7 +1232,7 @@ $client = new \GuzzleHttp\Client();
 $request_body = array();
 
 try {
-    $response = $client->request('POST','http://petstore.swagger.io/v2/pet/{petId}', array(
+    $response = $client->request('GET','https://exchange.alt.market/api/trade_history', array(
         'headers' => $headers,
         'json' => $request_body,
        )
@@ -1330,509 +1248,88 @@ try {
 
 ```
 
-```java
-URL obj = new URL("http://petstore.swagger.io/v2/pet/{petId}");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("POST");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
-}
-in.close();
-System.out.println(response.toString());
+`GET /api/trade_history`
 
-```
-
-```go
-package main
-
-import (
-       "bytes"
-       "net/http"
-)
-
-func main() {
-
-    headers := map[string][]string{
-        "Content-Type": []string{"application/x-www-form-urlencoded"},
-        "Authorization": []string{"Bearer {access-token}"},
-    }
-
-    data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("POST", "http://petstore.swagger.io/v2/pet/{petId}", data)
-    req.Header = headers
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    // ...
-}
-
-```
-
-`POST /pet/{petId}`
-
-*Updates a pet in the store with form data*
-
-> Body parameter
-
-```yaml
-name: string
-status: string
-
-```
-
-<h3 id="updatepetwithform-parameters">Parameters</h3>
+<h3 id="gettradehistoryasync-parameters">Parameters</h3>
 
 |Name|In|Type|Required|Description|
 |---|---|---|---|---|
-|petId|path|integer(int64)|true|ID of pet that needs to be updated|
-|body|body|object|false|none|
-|» name|body|string|false|Updated name of the pet|
-|» status|body|string|false|Updated status of the pet|
-
-<h3 id="updatepetwithform-responses">Responses</h3>
-
-|Status|Meaning|Description|Schema|
-|---|---|---|---|
-|405|[Method Not Allowed](https://tools.ietf.org/html/rfc7231#section-6.5.5)|Invalid input|None|
-
-<aside class="warning">
-To perform this operation, you must be authenticated by means of one of the following methods:
-petstore_auth ( Scopes: write:pets read:pets )
-</aside>
-
-## deletePet
-
-<a id="opIddeletePet"></a>
-
-> Code samples
-
-```shell
-# You can also use wget
-curl -X DELETE http://petstore.swagger.io/v2/pet/{petId} \
-  -H 'api_key: string' \
-  -H 'Authorization: Bearer {access-token}'
-
-```
-
-```http
-DELETE http://petstore.swagger.io/v2/pet/{petId} HTTP/1.1
-Host: petstore.swagger.io
-
-api_key: string
-
-```
-
-```javascript
-
-const headers = {
-  'api_key':'string',
-  'Authorization':'Bearer {access-token}'
-};
-
-fetch('http://petstore.swagger.io/v2/pet/{petId}',
-{
-  method: 'DELETE',
-
-  headers: headers
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
-
-```ruby
-require 'rest-client'
-require 'json'
-
-headers = {
-  'api_key' => 'string',
-  'Authorization' => 'Bearer {access-token}'
-}
-
-result = RestClient.delete 'http://petstore.swagger.io/v2/pet/{petId}',
-  params: {
-  }, headers: headers
-
-p JSON.parse(result)
-
-```
-
-```python
-import requests
-headers = {
-  'api_key': 'string',
-  'Authorization': 'Bearer {access-token}'
-}
-
-r = requests.delete('http://petstore.swagger.io/v2/pet/{petId}', headers = headers)
-
-print(r.json())
-
-```
-
-```php
-<?php
-
-require 'vendor/autoload.php';
-
-$headers = array(
-    'api_key' => 'string',
-    'Authorization' => 'Bearer {access-token}',
-);
-
-$client = new \GuzzleHttp\Client();
-
-// Define array of request body.
-$request_body = array();
-
-try {
-    $response = $client->request('DELETE','http://petstore.swagger.io/v2/pet/{petId}', array(
-        'headers' => $headers,
-        'json' => $request_body,
-       )
-    );
-    print_r($response->getBody()->getContents());
- }
- catch (\GuzzleHttp\Exception\BadResponseException $e) {
-    // handle exception or api errors.
-    print_r($e->getMessage());
- }
-
- // ...
-
-```
-
-```java
-URL obj = new URL("http://petstore.swagger.io/v2/pet/{petId}");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("DELETE");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
-}
-in.close();
-System.out.println(response.toString());
-
-```
-
-```go
-package main
-
-import (
-       "bytes"
-       "net/http"
-)
-
-func main() {
-
-    headers := map[string][]string{
-        "api_key": []string{"string"},
-        "Authorization": []string{"Bearer {access-token}"},
-    }
-
-    data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("DELETE", "http://petstore.swagger.io/v2/pet/{petId}", data)
-    req.Header = headers
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    // ...
-}
-
-```
-
-`DELETE /pet/{petId}`
-
-*Deletes a pet*
-
-<h3 id="deletepet-parameters">Parameters</h3>
-
-|Name|In|Type|Required|Description|
-|---|---|---|---|---|
-|api_key|header|string|false|none|
-|petId|path|integer(int64)|true|Pet id to delete|
-
-<h3 id="deletepet-responses">Responses</h3>
-
-|Status|Meaning|Description|Schema|
-|---|---|---|---|
-|400|[Bad Request](https://tools.ietf.org/html/rfc7231#section-6.5.1)|Invalid ID supplied|None|
-|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|Pet not found|None|
-
-<aside class="warning">
-To perform this operation, you must be authenticated by means of one of the following methods:
-petstore_auth ( Scopes: write:pets read:pets )
-</aside>
-
-## uploadFile
-
-<a id="opIduploadFile"></a>
-
-> Code samples
-
-```shell
-# You can also use wget
-curl -X POST http://petstore.swagger.io/v2/pet/{petId}/uploadImage \
-  -H 'Content-Type: multipart/form-data' \
-  -H 'Accept: application/json' \
-  -H 'Authorization: Bearer {access-token}'
-
-```
-
-```http
-POST http://petstore.swagger.io/v2/pet/{petId}/uploadImage HTTP/1.1
-Host: petstore.swagger.io
-Content-Type: multipart/form-data
-Accept: application/json
-
-```
-
-```javascript
-const inputBody = '{
-  "additionalMetadata": "string",
-  "file": "string"
-}';
-const headers = {
-  'Content-Type':'multipart/form-data',
-  'Accept':'application/json',
-  'Authorization':'Bearer {access-token}'
-};
-
-fetch('http://petstore.swagger.io/v2/pet/{petId}/uploadImage',
-{
-  method: 'POST',
-  body: inputBody,
-  headers: headers
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
-
-```ruby
-require 'rest-client'
-require 'json'
-
-headers = {
-  'Content-Type' => 'multipart/form-data',
-  'Accept' => 'application/json',
-  'Authorization' => 'Bearer {access-token}'
-}
-
-result = RestClient.post 'http://petstore.swagger.io/v2/pet/{petId}/uploadImage',
-  params: {
-  }, headers: headers
-
-p JSON.parse(result)
-
-```
-
-```python
-import requests
-headers = {
-  'Content-Type': 'multipart/form-data',
-  'Accept': 'application/json',
-  'Authorization': 'Bearer {access-token}'
-}
-
-r = requests.post('http://petstore.swagger.io/v2/pet/{petId}/uploadImage', headers = headers)
-
-print(r.json())
-
-```
-
-```php
-<?php
-
-require 'vendor/autoload.php';
-
-$headers = array(
-    'Content-Type' => 'multipart/form-data',
-    'Accept' => 'application/json',
-    'Authorization' => 'Bearer {access-token}',
-);
-
-$client = new \GuzzleHttp\Client();
-
-// Define array of request body.
-$request_body = array();
-
-try {
-    $response = $client->request('POST','http://petstore.swagger.io/v2/pet/{petId}/uploadImage', array(
-        'headers' => $headers,
-        'json' => $request_body,
-       )
-    );
-    print_r($response->getBody()->getContents());
- }
- catch (\GuzzleHttp\Exception\BadResponseException $e) {
-    // handle exception or api errors.
-    print_r($e->getMessage());
- }
-
- // ...
-
-```
-
-```java
-URL obj = new URL("http://petstore.swagger.io/v2/pet/{petId}/uploadImage");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("POST");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
-}
-in.close();
-System.out.println(response.toString());
-
-```
-
-```go
-package main
-
-import (
-       "bytes"
-       "net/http"
-)
-
-func main() {
-
-    headers := map[string][]string{
-        "Content-Type": []string{"multipart/form-data"},
-        "Accept": []string{"application/json"},
-        "Authorization": []string{"Bearer {access-token}"},
-    }
-
-    data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("POST", "http://petstore.swagger.io/v2/pet/{petId}/uploadImage", data)
-    req.Header = headers
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    // ...
-}
-
-```
-
-`POST /pet/{petId}/uploadImage`
-
-*uploads an image*
-
-> Body parameter
-
-```yaml
-additionalMetadata: string
-file: string
-
-```
-
-<h3 id="uploadfile-parameters">Parameters</h3>
-
-|Name|In|Type|Required|Description|
-|---|---|---|---|---|
-|petId|path|integer(int64)|true|ID of pet to update|
-|body|body|object|false|none|
-|» additionalMetadata|body|string|false|Additional data to pass to server|
-|» file|body|string(binary)|false|file to upload|
+|Market|query|string|false|none|
+|Side|query|string|false|none|
+|StartDate|query|string(date-time)|false|none|
+|EndDate|query|string(date-time)|false|none|
+|AscOrder|query|array[string]|false|none|
+|DescOrder|query|array[string]|false|none|
+|Page|query|integer(int32)|false|none|
+|PerPage|query|integer(int32)|false|none|
+
+#### Enumerated Values
+
+|Parameter|Value|
+|---|---|
+|Side|Buy|
+|Side|Sell|
 
 > Example responses
 
 > 200 Response
 
+```
+{"filters":{},"paging":{"page":0,"per_page":0,"total":0},"data":[{"tradeSeq":0,"tradeTime":"2020-06-04T09:48:43Z","amount":0,"executionPrice":0,"instrument":"string","side":"Buy","commission":0}]}
+```
+
 ```json
 {
-  "code": 0,
-  "type": "string",
-  "message": "string"
+  "filters": {},
+  "paging": {
+    "page": 0,
+    "per_page": 0,
+    "total": 0
+  },
+  "data": [
+    {
+      "tradeSeq": 0,
+      "tradeTime": "2020-06-04T09:48:43Z",
+      "amount": 0,
+      "executionPrice": 0,
+      "instrument": "string",
+      "side": "Buy",
+      "commission": 0
+    }
+  ]
 }
 ```
 
-<h3 id="uploadfile-responses">Responses</h3>
+<h3 id="gettradehistoryasync-responses">Responses</h3>
 
 |Status|Meaning|Description|Schema|
 |---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|successful operation|[ApiResponse](#schemaapiresponse)|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Success|[AltMarket.Http.FilteredResponse_1_AltMarket.Account.TradeHistoryItem_AltMarket.Account.Data_Version_1.0.0.0_Culture_neutral_PublicKeyToken_null_](#schemaqoden.http.filteredresponse_1_qodex.account.tradehistoryitem_qodex.account.data_version_1.0.0.0_culture_neutral_publickeytoken_null_)|
 
 <aside class="warning">
 To perform this operation, you must be authenticated by means of one of the following methods:
-petstore_auth ( Scopes: write:pets read:pets )
+HMAC Key/Sign
 </aside>
 
-<h1 id="swagger-petstore-store">store</h1>
+<h1 id="altmarket-exchange-api-wallet">Wallet</h1>
 
-Access to Petstore orders
+## Get Deposit Address
 
-## getInventory
-
-<a id="opIdgetInventory"></a>
+<a id="opIdRequestFundsDeposit"></a>
 
 > Code samples
-
-```shell
-# You can also use wget
-curl -X GET http://petstore.swagger.io/v2/store/inventory \
-  -H 'Accept: application/json' \
-  -H 'api_key: API_KEY'
-
-```
-
-```http
-GET http://petstore.swagger.io/v2/store/inventory HTTP/1.1
-Host: petstore.swagger.io
-Accept: application/json
-
-```
-
-```javascript
-
-const headers = {
-  'Accept':'application/json',
-  'api_key':'API_KEY'
-};
-
-fetch('http://petstore.swagger.io/v2/store/inventory',
-{
-  method: 'GET',
-
-  headers: headers
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
 
 ```ruby
 require 'rest-client'
 require 'json'
 
 headers = {
-  'Accept' => 'application/json',
-  'api_key' => 'API_KEY'
+  'Content-Type' => 'application/json-patch+json',
+  'Accept' => 'text/plain',
+  'Cookie' => 'API_KEY'
 }
 
-result = RestClient.get 'http://petstore.swagger.io/v2/store/inventory',
+result = RestClient.post 'https://exchange.alt.market/api/wallet/deposit',
   params: {
   }, headers: headers
 
@@ -1843,13 +1340,41 @@ p JSON.parse(result)
 ```python
 import requests
 headers = {
-  'Accept': 'application/json',
-  'api_key': 'API_KEY'
+  'Content-Type': 'application/json-patch+json',
+  'Accept': 'text/plain',
+  'Cookie': 'API_KEY'
 }
 
-r = requests.get('http://petstore.swagger.io/v2/store/inventory', headers = headers)
+r = requests.post('https://exchange.alt.market/api/wallet/deposit', headers = headers)
 
 print(r.json())
+
+```
+
+```go
+package main
+
+import (
+       "bytes"
+       "net/http"
+)
+
+func main() {
+
+    headers := map[string][]string{
+        "Content-Type": []string{"application/json-patch+json"},
+        "Accept": []string{"text/plain"},
+        "Cookie": []string{"API_KEY"},
+    }
+
+    data := bytes.NewBuffer([]byte{jsonReq})
+    req, err := http.NewRequest("POST", "/api/wallet/deposit", data)
+    req.Header = headers
+
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    // ...
+}
 
 ```
 
@@ -1859,8 +1384,9 @@ print(r.json())
 require 'vendor/autoload.php';
 
 $headers = array(
-    'Accept' => 'application/json',
-    'api_key' => 'API_KEY',
+    'Content-Type' => 'application/json-patch+json',
+    'Accept' => 'text/plain',
+    'Cookie' => 'API_KEY',
 );
 
 $client = new \GuzzleHttp\Client();
@@ -1869,7 +1395,7 @@ $client = new \GuzzleHttp\Client();
 $request_body = array();
 
 try {
-    $response = $client->request('GET','http://petstore.swagger.io/v2/store/inventory', array(
+    $response = $client->request('POST','https://exchange.alt.market/api/wallet/deposit', array(
         'headers' => $headers,
         'json' => $request_body,
        )
@@ -1885,20 +1411,85 @@ try {
 
 ```
 
-```java
-URL obj = new URL("http://petstore.swagger.io/v2/store/inventory");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("GET");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
+`POST /api/wallet/deposit`
+
+> Body parameter
+
+```json
+{
+  "assetId": "string"
 }
-in.close();
-System.out.println(response.toString());
+```
+
+<h3 id="requestfundsdeposit-parameters">Parameters</h3>
+
+|Name|In|Type|Required|Description|
+|---|---|---|---|---|
+|body|body|[AltMarket.FrontOffice.DepositFundsRequest](#schemamyexchange.frontoffice.depositfundsrequest)|false|none|
+
+> Example responses
+
+> 200 Response
+
+```
+{"asset":"string","paymentSystem":"string","address":"string","error":"string"}
+```
+
+```json
+{
+  "asset": "string",
+  "paymentSystem": "string",
+  "address": "string",
+  "error": "string"
+}
+```
+
+<h3 id="requestfundsdeposit-responses">Responses</h3>
+
+|Status|Meaning|Description|Schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Success|[AltMarket.FrontOffice.DepositFundsResponse](#schemamyexchange.frontoffice.depositfundsresponse)|
+
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+HMAC Key/Sign
+</aside>
+
+## Withdrawal
+
+<a id="opIdWithdrawal"></a>
+
+> Code samples
+
+```ruby
+require 'rest-client'
+require 'json'
+
+headers = {
+  'Content-Type' => 'application/json-patch+json',
+  'Accept' => 'text/plain',
+  'Cookie' => 'API_KEY'
+}
+
+result = RestClient.post 'https://exchange.alt.market/api/wallet/withdrawal',
+  params: {
+  }, headers: headers
+
+p JSON.parse(result)
+
+```
+
+```python
+import requests
+headers = {
+  'Content-Type': 'application/json-patch+json',
+  'Accept': 'text/plain',
+  'Cookie': 'API_KEY'
+}
+
+r = requests.post('https://exchange.alt.market/api/wallet/withdrawal', headers = headers)
+
+print(r.json())
 
 ```
 
@@ -1913,12 +1504,13 @@ import (
 func main() {
 
     headers := map[string][]string{
-        "Accept": []string{"application/json"},
-        "api_key": []string{"API_KEY"},
+        "Content-Type": []string{"application/json-patch+json"},
+        "Accept": []string{"text/plain"},
+        "Cookie": []string{"API_KEY"},
     }
 
     data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("GET", "http://petstore.swagger.io/v2/store/inventory", data)
+    req, err := http.NewRequest("POST", "/api/wallet/withdrawal", data)
     req.Header = headers
 
     client := &http.Client{}
@@ -1928,102 +1520,303 @@ func main() {
 
 ```
 
-`GET /store/inventory`
+```php
+<?php
 
-*Returns pet inventories by status*
+require 'vendor/autoload.php';
 
-Returns a map of status codes to quantities
+$headers = array(
+    'Content-Type' => 'application/json-patch+json',
+    'Accept' => 'text/plain',
+    'Cookie' => 'API_KEY',
+);
+
+$client = new \GuzzleHttp\Client();
+
+// Define array of request body.
+$request_body = array();
+
+try {
+    $response = $client->request('POST','https://exchange.alt.market/api/wallet/withdrawal', array(
+        'headers' => $headers,
+        'json' => $request_body,
+       )
+    );
+    print_r($response->getBody()->getContents());
+ }
+ catch (\GuzzleHttp\Exception\BadResponseException $e) {
+    // handle exception or api errors.
+    print_r($e->getMessage());
+ }
+
+ // ...
+
+```
+
+`POST /api/wallet/withdrawal`
+
+> Body parameter
+
+```json
+{
+  "transferId": "string",
+  "assetId": "string",
+  "amount": 0,
+  "address": "string"
+}
+```
+
+<h3 id="withdrawal-parameters">Parameters</h3>
+
+|Name|In|Type|Required|Description|
+|---|---|---|---|---|
+|body|body|[AltMarket.Api.WithdrawalRequest](#schemaapilibrary.api.withdrawalrequest)|false|none|
 
 > Example responses
 
 > 200 Response
 
+```
+{"asset":"string","paymentSystem":"string","transferId":"string","type":"Deposit","status":"AwaitingConfirmation","amount":"string","fee":"string","errorDetails":"string","createdAt":"2020-06-04T09:48:43Z","updatedAt":"2020-06-04T09:48:43Z","txId":"string","blockchainLink":"string","errorCode":"string","confirmations":0,"confirmationsRequired":0,"targetAddress":"string"}
+```
+
 ```json
 {
-  "property1": 0,
-  "property2": 0
+  "asset": "string",
+  "paymentSystem": "string",
+  "transferId": "string",
+  "type": "Deposit",
+  "status": "AwaitingConfirmation",
+  "amount": "string",
+  "fee": "string",
+  "errorDetails": "string",
+  "createdAt": "2020-06-04T09:48:43Z",
+  "updatedAt": "2020-06-04T09:48:43Z",
+  "txId": "string",
+  "blockchainLink": "string",
+  "errorCode": "string",
+  "confirmations": 0,
+  "confirmationsRequired": 0,
+  "targetAddress": "string"
 }
 ```
 
-<h3 id="getinventory-responses">Responses</h3>
+<h3 id="withdrawal-responses">Responses</h3>
 
 |Status|Meaning|Description|Schema|
 |---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|successful operation|Inline|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Success|[AltMarket.Account.TransferData](#schemaqodex.account.transferdata)|
 
-<h3 id="getinventory-responseschema">Response Schema</h3>
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+HMAC Key/Sign
+</aside>
+
+## Transfer History 
+
+<a id="opIdGetTransfers"></a>
+
+> Code samples
+
+```ruby
+require 'rest-client'
+require 'json'
+
+headers = {
+  'content-type' => 'application/json',
+  'Key' => 'API_KEY',
+  'Sign' => 'API_SIGN'
+}
+
+result = RestClient.get 'https://exchange.alt.market/api/wallet/transfers',
+  params: {
+  }, headers: headers
+
+p JSON.parse(result)
+
+```
+
+```python
+import requests
+headers = {
+  'content-type': 'application/json',
+  'Key': 'API_KEY',
+  'Sign': 'API_SIGN'
+}
+
+r = requests.get('https://exchange.alt.market/api/wallet/transfers', headers = headers)
+
+print(r.json())
+
+```
+
+```go
+package main
+
+import (
+       "bytes"
+       "net/http"
+)
+
+func main() {
+
+    headers := map[string][]string{
+        "content-type": []string{"application/json"},
+        "Key": []string{"API_KEY"},
+        "Sign": []string{"API_SIGN"}
+    }
+
+    data := bytes.NewBuffer([]byte{jsonReq})
+    req, err := http.NewRequest("GET", "/api/wallet/transfers", data)
+    req.Header = headers
+
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    // ...
+}
+
+```
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+$headers = array(
+    'content-type' => 'application/json',
+    'Key' => 'API_KEY',
+    'Sign' => 'API_SIGN'
+);
+
+$client = new \GuzzleHttp\Client();
+
+// Define array of request body.
+$request_body = array();
+
+try {
+    $response = $client->request('GET','https://exchange.alt.market/api/wallet/transfers', array(
+        'headers' => $headers,
+        'json' => $request_body,
+       )
+    );
+    print_r($response->getBody()->getContents());
+ }
+ catch (\GuzzleHttp\Exception\BadResponseException $e) {
+    // handle exception or api errors.
+    print_r($e->getMessage());
+ }
+
+ // ...
+
+```
+
+`GET /api/wallet/transfers`
+
+<h3 id="gettransfers-parameters">Parameters</h3>
+
+|Name|In|Type|Required|Description|
+|---|---|---|---|---|
+|count|query|integer(int32)|false|none|
+
+> Example responses
+
+> 200 Response
+
+```
+[{"asset":"string","paymentSystem":"string","transferId":"string","type":"Deposit","status":"AwaitingConfirmation","amount":"string","fee":"string","errorDetails":"string","createdAt":"2020-06-04T09:48:43Z","updatedAt":"2020-06-04T09:48:43Z","txId":"string","blockchainLink":"string","errorCode":"string","confirmations":0,"confirmationsRequired":0,"targetAddress":"string"}]
+```
+
+```json
+[
+  {
+    "asset": "string",
+    "paymentSystem": "string",
+    "transferId": "string",
+    "type": "Deposit",
+    "status": "AwaitingConfirmation",
+    "amount": "string",
+    "fee": "string",
+    "errorDetails": "string",
+    "createdAt": "2020-06-04T09:48:43Z",
+    "updatedAt": "2020-06-04T09:48:43Z",
+    "txId": "string",
+    "blockchainLink": "string",
+    "errorCode": "string",
+    "confirmations": 0,
+    "confirmationsRequired": 0,
+    "targetAddress": "string"
+  }
+]
+```
+
+<h3 id="gettransfers-responses">Responses</h3>
+
+|Status|Meaning|Description|Schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Success|Inline|
+
+<h3 id="gettransfers-responseschema">Response Schema</h3>
 
 Status Code **200**
 
 |Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|
-|» **additionalProperties**|integer(int32)|false|none|none|
+|*anonymous*|[[AltMarket.Account.TransferData](#schemaqodex.account.transferdata)]|false|none|none|
+|» asset|string|false|none|none|
+|» paymentSystem|string|false|none|none|
+|» transferId|string|false|none|none|
+|» type|string|false|none|none|
+|» status|string|false|none|none|
+|» amount|string|false|none|none|
+|» fee|string|false|none|none|
+|» errorDetails|string|false|none|none|
+|» createdAt|string(date-time)|false|none|none|
+|» updatedAt|string(date-time)|false|none|none|
+|» txId|string|false|none|none|
+|» blockchainLink|string|false|none|none|
+|» errorCode|string|false|none|none|
+|» confirmations|integer(int32)|false|none|none|
+|» confirmationsRequired|integer(int32)|false|none|none|
+|» targetAddress|string|false|none|none|
+
+#### Enumerated Values
+
+|Property|Value|
+|---|---|
+|type|Deposit|
+|type|Withdrawal|
+|status|AwaitingConfirmation|
+|status|Unused_Pending|
+|status|Completed|
+|status|Failed|
+|status|Unused_PendingCancellation|
+|status|Unused_Canceled|
+|status|Unused_CompletedUpdate|
+|status|Unused_FundsLocked|
+|status|Unused_PaymentSystemError|
 
 <aside class="warning">
 To perform this operation, you must be authenticated by means of one of the following methods:
-api_key
+HMAC Key/Sign
 </aside>
 
-## placeOrder
+## Balance
 
-<a id="opIdplaceOrder"></a>
+<a id="opIdFullAssets"></a>
 
 > Code samples
-
-```shell
-# You can also use wget
-curl -X POST http://petstore.swagger.io/v2/store/order \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/xml'
-
-```
-
-```http
-POST http://petstore.swagger.io/v2/store/order HTTP/1.1
-Host: petstore.swagger.io
-Content-Type: application/json
-Accept: application/xml
-
-```
-
-```javascript
-const inputBody = '{
-  "id": 0,
-  "petId": 0,
-  "quantity": 0,
-  "shipDate": "2020-03-30T14:38:05Z",
-  "status": "placed",
-  "complete": false
-}';
-const headers = {
-  'Content-Type':'application/json',
-  'Accept':'application/xml'
-};
-
-fetch('http://petstore.swagger.io/v2/store/order',
-{
-  method: 'POST',
-  body: inputBody,
-  headers: headers
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
 
 ```ruby
 require 'rest-client'
 require 'json'
 
 headers = {
-  'Content-Type' => 'application/json',
-  'Accept' => 'application/xml'
+  'content-type' => 'application/json',
+  'Key' => 'API_KEY',
+  'Sign' => 'API_SIGN'
 }
 
-result = RestClient.post 'http://petstore.swagger.io/v2/store/order',
+result = RestClient.get 'https://exchange.alt.market/api/wallet/balance',
   params: {
   }, headers: headers
 
@@ -2034,13 +1827,41 @@ p JSON.parse(result)
 ```python
 import requests
 headers = {
-  'Content-Type': 'application/json',
-  'Accept': 'application/xml'
+  'content-type': 'application/json',
+  'Key': 'API_KEY',
+  'Sign': 'API_SIGN'
 }
 
-r = requests.post('http://petstore.swagger.io/v2/store/order', headers = headers)
+r = requests.get('https://exchange.alt.market/api/wallet/balance', headers = headers)
 
 print(r.json())
+
+```
+
+```go
+package main
+
+import (
+       "bytes"
+       "net/http"
+)
+
+func main() {
+
+    headers := map[string][]string{
+        "content-type": []string{"application/json"},
+        "Key": []string{"API_KEY"},
+        "Sign": []string{"API_SIGN"}
+    }
+
+    data := bytes.NewBuffer([]byte{jsonReq})
+    req, err := http.NewRequest("GET", "/api/wallet/balance", data)
+    req.Header = headers
+
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    // ...
+}
 
 ```
 
@@ -2050,8 +1871,9 @@ print(r.json())
 require 'vendor/autoload.php';
 
 $headers = array(
-    'Content-Type' => 'application/json',
-    'Accept' => 'application/xml',
+    'content-type' => 'application/json',
+    'Key' => 'API_KEY',
+    'Sign' => 'API_SIGN'
 );
 
 $client = new \GuzzleHttp\Client();
@@ -2060,7 +1882,7 @@ $client = new \GuzzleHttp\Client();
 $request_body = array();
 
 try {
-    $response = $client->request('POST','http://petstore.swagger.io/v2/store/order', array(
+    $response = $client->request('GET','https://exchange.alt.market/api/wallet/balance', array(
         'headers' => $headers,
         'json' => $request_body,
        )
@@ -2076,1872 +1898,68 @@ try {
 
 ```
 
-```java
-URL obj = new URL("http://petstore.swagger.io/v2/store/order");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("POST");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
-}
-in.close();
-System.out.println(response.toString());
-
-```
-
-```go
-package main
-
-import (
-       "bytes"
-       "net/http"
-)
-
-func main() {
-
-    headers := map[string][]string{
-        "Content-Type": []string{"application/json"},
-        "Accept": []string{"application/xml"},
-    }
-
-    data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("POST", "http://petstore.swagger.io/v2/store/order", data)
-    req.Header = headers
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    // ...
-}
-
-```
-
-`POST /store/order`
-
-*Place an order for a pet*
-
-> Body parameter
-
-```json
-{
-  "id": 0,
-  "petId": 0,
-  "quantity": 0,
-  "shipDate": "2020-03-30T14:38:05Z",
-  "status": "placed",
-  "complete": false
-}
-```
-
-<h3 id="placeorder-parameters">Parameters</h3>
-
-|Name|In|Type|Required|Description|
-|---|---|---|---|---|
-|body|body|[Order](#schemaorder)|true|order placed for purchasing the pet|
+`GET /api/wallet/balance`
 
 > Example responses
 
 > 200 Response
 
-```xml
-<?xml version="1.0" encoding="UTF-8" ?>
-<Order>
-  <id>0</id>
-  <petId>0</petId>
-  <quantity>0</quantity>
-  <shipDate>2020-03-30T14:38:05Z</shipDate>
-  <status>placed</status>
-  <complete>false</complete>
-</Order>
 ```
-
-```json
-{
-  "id": 0,
-  "petId": 0,
-  "quantity": 0,
-  "shipDate": "2020-03-30T14:38:05Z",
-  "status": "placed",
-  "complete": false
-}
+[{"asset":"string","totalBalance":0,"inOrder":0,"availableBalance":0}]
 ```
-
-<h3 id="placeorder-responses">Responses</h3>
-
-|Status|Meaning|Description|Schema|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|successful operation|[Order](#schemaorder)|
-|400|[Bad Request](https://tools.ietf.org/html/rfc7231#section-6.5.1)|Invalid Order|None|
-
-<aside class="success">
-This operation does not require authentication
-</aside>
-
-## getOrderById
-
-<a id="opIdgetOrderById"></a>
-
-> Code samples
-
-```shell
-# You can also use wget
-curl -X GET http://petstore.swagger.io/v2/store/order/{orderId} \
-  -H 'Accept: application/xml'
-
-```
-
-```http
-GET http://petstore.swagger.io/v2/store/order/{orderId} HTTP/1.1
-Host: petstore.swagger.io
-Accept: application/xml
-
-```
-
-```javascript
-
-const headers = {
-  'Accept':'application/xml'
-};
-
-fetch('http://petstore.swagger.io/v2/store/order/{orderId}',
-{
-  method: 'GET',
-
-  headers: headers
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
-
-```ruby
-require 'rest-client'
-require 'json'
-
-headers = {
-  'Accept' => 'application/xml'
-}
-
-result = RestClient.get 'http://petstore.swagger.io/v2/store/order/{orderId}',
-  params: {
-  }, headers: headers
-
-p JSON.parse(result)
-
-```
-
-```python
-import requests
-headers = {
-  'Accept': 'application/xml'
-}
-
-r = requests.get('http://petstore.swagger.io/v2/store/order/{orderId}', headers = headers)
-
-print(r.json())
-
-```
-
-```php
-<?php
-
-require 'vendor/autoload.php';
-
-$headers = array(
-    'Accept' => 'application/xml',
-);
-
-$client = new \GuzzleHttp\Client();
-
-// Define array of request body.
-$request_body = array();
-
-try {
-    $response = $client->request('GET','http://petstore.swagger.io/v2/store/order/{orderId}', array(
-        'headers' => $headers,
-        'json' => $request_body,
-       )
-    );
-    print_r($response->getBody()->getContents());
- }
- catch (\GuzzleHttp\Exception\BadResponseException $e) {
-    // handle exception or api errors.
-    print_r($e->getMessage());
- }
-
- // ...
-
-```
-
-```java
-URL obj = new URL("http://petstore.swagger.io/v2/store/order/{orderId}");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("GET");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
-}
-in.close();
-System.out.println(response.toString());
-
-```
-
-```go
-package main
-
-import (
-       "bytes"
-       "net/http"
-)
-
-func main() {
-
-    headers := map[string][]string{
-        "Accept": []string{"application/xml"},
-    }
-
-    data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("GET", "http://petstore.swagger.io/v2/store/order/{orderId}", data)
-    req.Header = headers
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    // ...
-}
-
-```
-
-`GET /store/order/{orderId}`
-
-*Find purchase order by ID*
-
-For valid response try integer IDs with value >= 1 and <= 10. Other values will generated exceptions
-
-<h3 id="getorderbyid-parameters">Parameters</h3>
-
-|Name|In|Type|Required|Description|
-|---|---|---|---|---|
-|orderId|path|integer(int64)|true|ID of pet that needs to be fetched|
-
-> Example responses
-
-> 200 Response
-
-```xml
-<?xml version="1.0" encoding="UTF-8" ?>
-<Order>
-  <id>0</id>
-  <petId>0</petId>
-  <quantity>0</quantity>
-  <shipDate>2020-03-30T14:38:05Z</shipDate>
-  <status>placed</status>
-  <complete>false</complete>
-</Order>
-```
-
-```json
-{
-  "id": 0,
-  "petId": 0,
-  "quantity": 0,
-  "shipDate": "2020-03-30T14:38:05Z",
-  "status": "placed",
-  "complete": false
-}
-```
-
-<h3 id="getorderbyid-responses">Responses</h3>
-
-|Status|Meaning|Description|Schema|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|successful operation|[Order](#schemaorder)|
-|400|[Bad Request](https://tools.ietf.org/html/rfc7231#section-6.5.1)|Invalid ID supplied|None|
-|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|Order not found|None|
-
-<aside class="success">
-This operation does not require authentication
-</aside>
-
-## deleteOrder
-
-<a id="opIddeleteOrder"></a>
-
-> Code samples
-
-```shell
-# You can also use wget
-curl -X DELETE http://petstore.swagger.io/v2/store/order/{orderId}
-
-```
-
-```http
-DELETE http://petstore.swagger.io/v2/store/order/{orderId} HTTP/1.1
-Host: petstore.swagger.io
-
-```
-
-```javascript
-
-fetch('http://petstore.swagger.io/v2/store/order/{orderId}',
-{
-  method: 'DELETE'
-
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
-
-```ruby
-require 'rest-client'
-require 'json'
-
-result = RestClient.delete 'http://petstore.swagger.io/v2/store/order/{orderId}',
-  params: {
-  }
-
-p JSON.parse(result)
-
-```
-
-```python
-import requests
-
-r = requests.delete('http://petstore.swagger.io/v2/store/order/{orderId}')
-
-print(r.json())
-
-```
-
-```php
-<?php
-
-require 'vendor/autoload.php';
-
-$client = new \GuzzleHttp\Client();
-
-// Define array of request body.
-$request_body = array();
-
-try {
-    $response = $client->request('DELETE','http://petstore.swagger.io/v2/store/order/{orderId}', array(
-        'headers' => $headers,
-        'json' => $request_body,
-       )
-    );
-    print_r($response->getBody()->getContents());
- }
- catch (\GuzzleHttp\Exception\BadResponseException $e) {
-    // handle exception or api errors.
-    print_r($e->getMessage());
- }
-
- // ...
-
-```
-
-```java
-URL obj = new URL("http://petstore.swagger.io/v2/store/order/{orderId}");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("DELETE");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
-}
-in.close();
-System.out.println(response.toString());
-
-```
-
-```go
-package main
-
-import (
-       "bytes"
-       "net/http"
-)
-
-func main() {
-
-    data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("DELETE", "http://petstore.swagger.io/v2/store/order/{orderId}", data)
-    req.Header = headers
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    // ...
-}
-
-```
-
-`DELETE /store/order/{orderId}`
-
-*Delete purchase order by ID*
-
-For valid response try integer IDs with positive integer value. Negative or non-integer values will generate API errors
-
-<h3 id="deleteorder-parameters">Parameters</h3>
-
-|Name|In|Type|Required|Description|
-|---|---|---|---|---|
-|orderId|path|integer(int64)|true|ID of the order that needs to be deleted|
-
-<h3 id="deleteorder-responses">Responses</h3>
-
-|Status|Meaning|Description|Schema|
-|---|---|---|---|
-|400|[Bad Request](https://tools.ietf.org/html/rfc7231#section-6.5.1)|Invalid ID supplied|None|
-|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|Order not found|None|
-
-<aside class="success">
-This operation does not require authentication
-</aside>
-
-<h1 id="swagger-petstore-user">user</h1>
-
-Operations about user
-
-<a href="http://swagger.io">Find out more about our store</a>
-
-## createUser
-
-<a id="opIdcreateUser"></a>
-
-> Code samples
-
-```shell
-# You can also use wget
-curl -X POST http://petstore.swagger.io/v2/user \
-  -H 'Content-Type: application/json'
-
-```
-
-```http
-POST http://petstore.swagger.io/v2/user HTTP/1.1
-Host: petstore.swagger.io
-Content-Type: application/json
-
-```
-
-```javascript
-const inputBody = '{
-  "id": 0,
-  "username": "string",
-  "firstName": "string",
-  "lastName": "string",
-  "email": "string",
-  "password": "string",
-  "phone": "string",
-  "userStatus": 0
-}';
-const headers = {
-  'Content-Type':'application/json'
-};
-
-fetch('http://petstore.swagger.io/v2/user',
-{
-  method: 'POST',
-  body: inputBody,
-  headers: headers
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
-
-```ruby
-require 'rest-client'
-require 'json'
-
-headers = {
-  'Content-Type' => 'application/json'
-}
-
-result = RestClient.post 'http://petstore.swagger.io/v2/user',
-  params: {
-  }, headers: headers
-
-p JSON.parse(result)
-
-```
-
-```python
-import requests
-headers = {
-  'Content-Type': 'application/json'
-}
-
-r = requests.post('http://petstore.swagger.io/v2/user', headers = headers)
-
-print(r.json())
-
-```
-
-```php
-<?php
-
-require 'vendor/autoload.php';
-
-$headers = array(
-    'Content-Type' => 'application/json',
-);
-
-$client = new \GuzzleHttp\Client();
-
-// Define array of request body.
-$request_body = array();
-
-try {
-    $response = $client->request('POST','http://petstore.swagger.io/v2/user', array(
-        'headers' => $headers,
-        'json' => $request_body,
-       )
-    );
-    print_r($response->getBody()->getContents());
- }
- catch (\GuzzleHttp\Exception\BadResponseException $e) {
-    // handle exception or api errors.
-    print_r($e->getMessage());
- }
-
- // ...
-
-```
-
-```java
-URL obj = new URL("http://petstore.swagger.io/v2/user");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("POST");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
-}
-in.close();
-System.out.println(response.toString());
-
-```
-
-```go
-package main
-
-import (
-       "bytes"
-       "net/http"
-)
-
-func main() {
-
-    headers := map[string][]string{
-        "Content-Type": []string{"application/json"},
-    }
-
-    data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("POST", "http://petstore.swagger.io/v2/user", data)
-    req.Header = headers
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    // ...
-}
-
-```
-
-`POST /user`
-
-*Create user*
-
-This can only be done by the logged in user.
-
-> Body parameter
-
-```json
-{
-  "id": 0,
-  "username": "string",
-  "firstName": "string",
-  "lastName": "string",
-  "email": "string",
-  "password": "string",
-  "phone": "string",
-  "userStatus": 0
-}
-```
-
-<h3 id="createuser-parameters">Parameters</h3>
-
-|Name|In|Type|Required|Description|
-|---|---|---|---|---|
-|body|body|[User](#schemauser)|true|Created user object|
-
-<h3 id="createuser-responses">Responses</h3>
-
-|Status|Meaning|Description|Schema|
-|---|---|---|---|
-|default|Default|successful operation|None|
-
-<aside class="success">
-This operation does not require authentication
-</aside>
-
-## createUsersWithArrayInput
-
-<a id="opIdcreateUsersWithArrayInput"></a>
-
-> Code samples
-
-```shell
-# You can also use wget
-curl -X POST http://petstore.swagger.io/v2/user/createWithArray \
-  -H 'Content-Type: application/json'
-
-```
-
-```http
-POST http://petstore.swagger.io/v2/user/createWithArray HTTP/1.1
-Host: petstore.swagger.io
-Content-Type: application/json
-
-```
-
-```javascript
-const inputBody = '[
-  {
-    "id": 0,
-    "username": "string",
-    "firstName": "string",
-    "lastName": "string",
-    "email": "string",
-    "password": "string",
-    "phone": "string",
-    "userStatus": 0
-  }
-]';
-const headers = {
-  'Content-Type':'application/json'
-};
-
-fetch('http://petstore.swagger.io/v2/user/createWithArray',
-{
-  method: 'POST',
-  body: inputBody,
-  headers: headers
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
-
-```ruby
-require 'rest-client'
-require 'json'
-
-headers = {
-  'Content-Type' => 'application/json'
-}
-
-result = RestClient.post 'http://petstore.swagger.io/v2/user/createWithArray',
-  params: {
-  }, headers: headers
-
-p JSON.parse(result)
-
-```
-
-```python
-import requests
-headers = {
-  'Content-Type': 'application/json'
-}
-
-r = requests.post('http://petstore.swagger.io/v2/user/createWithArray', headers = headers)
-
-print(r.json())
-
-```
-
-```php
-<?php
-
-require 'vendor/autoload.php';
-
-$headers = array(
-    'Content-Type' => 'application/json',
-);
-
-$client = new \GuzzleHttp\Client();
-
-// Define array of request body.
-$request_body = array();
-
-try {
-    $response = $client->request('POST','http://petstore.swagger.io/v2/user/createWithArray', array(
-        'headers' => $headers,
-        'json' => $request_body,
-       )
-    );
-    print_r($response->getBody()->getContents());
- }
- catch (\GuzzleHttp\Exception\BadResponseException $e) {
-    // handle exception or api errors.
-    print_r($e->getMessage());
- }
-
- // ...
-
-```
-
-```java
-URL obj = new URL("http://petstore.swagger.io/v2/user/createWithArray");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("POST");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
-}
-in.close();
-System.out.println(response.toString());
-
-```
-
-```go
-package main
-
-import (
-       "bytes"
-       "net/http"
-)
-
-func main() {
-
-    headers := map[string][]string{
-        "Content-Type": []string{"application/json"},
-    }
-
-    data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("POST", "http://petstore.swagger.io/v2/user/createWithArray", data)
-    req.Header = headers
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    // ...
-}
-
-```
-
-`POST /user/createWithArray`
-
-*Creates list of users with given input array*
-
-> Body parameter
 
 ```json
 [
   {
-    "id": 0,
-    "username": "string",
-    "firstName": "string",
-    "lastName": "string",
-    "email": "string",
-    "password": "string",
-    "phone": "string",
-    "userStatus": 0
+    "asset": "string",
+    "totalBalance": 0,
+    "inOrder": 0,
+    "availableBalance": 0
   }
 ]
 ```
 
-<h3 id="createuserswitharrayinput-parameters">Parameters</h3>
-
-|Name|In|Type|Required|Description|
-|---|---|---|---|---|
-|body|body|[User](#schemauser)|true|List of user object|
-
-<h3 id="createuserswitharrayinput-responses">Responses</h3>
+<h3 id="fullassets-responses">Responses</h3>
 
 |Status|Meaning|Description|Schema|
 |---|---|---|---|
-|default|Default|successful operation|None|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Success|Inline|
 
-<aside class="success">
-This operation does not require authentication
-</aside>
+<h3 id="fullassets-responseschema">Response Schema</h3>
 
-## createUsersWithListInput
+Status Code **200**
 
-<a id="opIdcreateUsersWithListInput"></a>
-
-> Code samples
-
-```shell
-# You can also use wget
-curl -X POST http://petstore.swagger.io/v2/user/createWithList \
-  -H 'Content-Type: application/json'
-
-```
-
-```http
-POST http://petstore.swagger.io/v2/user/createWithList HTTP/1.1
-Host: petstore.swagger.io
-Content-Type: application/json
-
-```
-
-```javascript
-const inputBody = '[
-  {
-    "id": 0,
-    "username": "string",
-    "firstName": "string",
-    "lastName": "string",
-    "email": "string",
-    "password": "string",
-    "phone": "string",
-    "userStatus": 0
-  }
-]';
-const headers = {
-  'Content-Type':'application/json'
-};
-
-fetch('http://petstore.swagger.io/v2/user/createWithList',
-{
-  method: 'POST',
-  body: inputBody,
-  headers: headers
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
-
-```ruby
-require 'rest-client'
-require 'json'
-
-headers = {
-  'Content-Type' => 'application/json'
-}
-
-result = RestClient.post 'http://petstore.swagger.io/v2/user/createWithList',
-  params: {
-  }, headers: headers
-
-p JSON.parse(result)
-
-```
-
-```python
-import requests
-headers = {
-  'Content-Type': 'application/json'
-}
-
-r = requests.post('http://petstore.swagger.io/v2/user/createWithList', headers = headers)
-
-print(r.json())
-
-```
-
-```php
-<?php
-
-require 'vendor/autoload.php';
-
-$headers = array(
-    'Content-Type' => 'application/json',
-);
-
-$client = new \GuzzleHttp\Client();
-
-// Define array of request body.
-$request_body = array();
-
-try {
-    $response = $client->request('POST','http://petstore.swagger.io/v2/user/createWithList', array(
-        'headers' => $headers,
-        'json' => $request_body,
-       )
-    );
-    print_r($response->getBody()->getContents());
- }
- catch (\GuzzleHttp\Exception\BadResponseException $e) {
-    // handle exception or api errors.
-    print_r($e->getMessage());
- }
-
- // ...
-
-```
-
-```java
-URL obj = new URL("http://petstore.swagger.io/v2/user/createWithList");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("POST");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
-}
-in.close();
-System.out.println(response.toString());
-
-```
-
-```go
-package main
-
-import (
-       "bytes"
-       "net/http"
-)
-
-func main() {
-
-    headers := map[string][]string{
-        "Content-Type": []string{"application/json"},
-    }
-
-    data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("POST", "http://petstore.swagger.io/v2/user/createWithList", data)
-    req.Header = headers
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    // ...
-}
-
-```
-
-`POST /user/createWithList`
-
-*Creates list of users with given input array*
-
-> Body parameter
-
-```json
-[
-  {
-    "id": 0,
-    "username": "string",
-    "firstName": "string",
-    "lastName": "string",
-    "email": "string",
-    "password": "string",
-    "phone": "string",
-    "userStatus": 0
-  }
-]
-```
-
-<h3 id="createuserswithlistinput-parameters">Parameters</h3>
-
-|Name|In|Type|Required|Description|
+|Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|
-|body|body|[User](#schemauser)|true|List of user object|
-
-<h3 id="createuserswithlistinput-responses">Responses</h3>
-
-|Status|Meaning|Description|Schema|
-|---|---|---|---|
-|default|Default|successful operation|None|
-
-<aside class="success">
-This operation does not require authentication
-</aside>
-
-## loginUser
-
-<a id="opIdloginUser"></a>
-
-> Code samples
-
-```shell
-# You can also use wget
-curl -X GET http://petstore.swagger.io/v2/user/login?username=string&password=pa%24%24word \
-  -H 'Accept: application/xml'
-
-```
-
-```http
-GET http://petstore.swagger.io/v2/user/login?username=string&password=pa%24%24word HTTP/1.1
-Host: petstore.swagger.io
-Accept: application/xml
-
-```
-
-```javascript
-
-const headers = {
-  'Accept':'application/xml'
-};
-
-fetch('http://petstore.swagger.io/v2/user/login?username=string&password=pa%24%24word',
-{
-  method: 'GET',
-
-  headers: headers
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
-
-```ruby
-require 'rest-client'
-require 'json'
-
-headers = {
-  'Accept' => 'application/xml'
-}
-
-result = RestClient.get 'http://petstore.swagger.io/v2/user/login',
-  params: {
-  'username' => 'string',
-'password' => 'string(password)'
-}, headers: headers
-
-p JSON.parse(result)
-
-```
-
-```python
-import requests
-headers = {
-  'Accept': 'application/xml'
-}
-
-r = requests.get('http://petstore.swagger.io/v2/user/login', params={
-  'username': 'string',  'password': 'pa$$word'
-}, headers = headers)
-
-print(r.json())
-
-```
-
-```php
-<?php
-
-require 'vendor/autoload.php';
-
-$headers = array(
-    'Accept' => 'application/xml',
-);
-
-$client = new \GuzzleHttp\Client();
-
-// Define array of request body.
-$request_body = array();
-
-try {
-    $response = $client->request('GET','http://petstore.swagger.io/v2/user/login', array(
-        'headers' => $headers,
-        'json' => $request_body,
-       )
-    );
-    print_r($response->getBody()->getContents());
- }
- catch (\GuzzleHttp\Exception\BadResponseException $e) {
-    // handle exception or api errors.
-    print_r($e->getMessage());
- }
-
- // ...
-
-```
-
-```java
-URL obj = new URL("http://petstore.swagger.io/v2/user/login?username=string&password=pa%24%24word");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("GET");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
-}
-in.close();
-System.out.println(response.toString());
-
-```
-
-```go
-package main
-
-import (
-       "bytes"
-       "net/http"
-)
-
-func main() {
-
-    headers := map[string][]string{
-        "Accept": []string{"application/xml"},
-    }
-
-    data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("GET", "http://petstore.swagger.io/v2/user/login", data)
-    req.Header = headers
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    // ...
-}
-
-```
-
-`GET /user/login`
-
-*Logs user into the system*
-
-<h3 id="loginuser-parameters">Parameters</h3>
-
-|Name|In|Type|Required|Description|
-|---|---|---|---|---|
-|username|query|string|true|The user name for login|
-|password|query|string(password)|true|The password for login in clear text|
-
-> Example responses
-
-> 200 Response
-
-```json
-"string"
-```
-
-<h3 id="loginuser-responses">Responses</h3>
-
-|Status|Meaning|Description|Schema|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|successful operation|string|
-|400|[Bad Request](https://tools.ietf.org/html/rfc7231#section-6.5.1)|Invalid username/password supplied|None|
-
-### Response Headers
-
-|Status|Header|Type|Format|Description|
-|---|---|---|---|---|
-|200|X-Rate-Limit|integer|int32|calls per hour allowed by the user|
-|200|X-Expires-After|string|date-time|date in UTC when token expires|
-
-<aside class="success">
-This operation does not require authentication
-</aside>
-
-## logoutUser
-
-<a id="opIdlogoutUser"></a>
-
-> Code samples
-
-```shell
-# You can also use wget
-curl -X GET http://petstore.swagger.io/v2/user/logout
-
-```
-
-```http
-GET http://petstore.swagger.io/v2/user/logout HTTP/1.1
-Host: petstore.swagger.io
-
-```
-
-```javascript
-
-fetch('http://petstore.swagger.io/v2/user/logout',
-{
-  method: 'GET'
-
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
-
-```ruby
-require 'rest-client'
-require 'json'
-
-result = RestClient.get 'http://petstore.swagger.io/v2/user/logout',
-  params: {
-  }
-
-p JSON.parse(result)
-
-```
-
-```python
-import requests
-
-r = requests.get('http://petstore.swagger.io/v2/user/logout')
-
-print(r.json())
-
-```
-
-```php
-<?php
-
-require 'vendor/autoload.php';
-
-$client = new \GuzzleHttp\Client();
-
-// Define array of request body.
-$request_body = array();
-
-try {
-    $response = $client->request('GET','http://petstore.swagger.io/v2/user/logout', array(
-        'headers' => $headers,
-        'json' => $request_body,
-       )
-    );
-    print_r($response->getBody()->getContents());
- }
- catch (\GuzzleHttp\Exception\BadResponseException $e) {
-    // handle exception or api errors.
-    print_r($e->getMessage());
- }
-
- // ...
-
-```
-
-```java
-URL obj = new URL("http://petstore.swagger.io/v2/user/logout");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("GET");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
-}
-in.close();
-System.out.println(response.toString());
-
-```
-
-```go
-package main
-
-import (
-       "bytes"
-       "net/http"
-)
-
-func main() {
-
-    data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("GET", "http://petstore.swagger.io/v2/user/logout", data)
-    req.Header = headers
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    // ...
-}
-
-```
-
-`GET /user/logout`
-
-*Logs out current logged in user session*
-
-<h3 id="logoutuser-responses">Responses</h3>
-
-|Status|Meaning|Description|Schema|
-|---|---|---|---|
-|default|Default|successful operation|None|
-
-<aside class="success">
-This operation does not require authentication
-</aside>
-
-## getUserByName
-
-<a id="opIdgetUserByName"></a>
-
-> Code samples
-
-```shell
-# You can also use wget
-curl -X GET http://petstore.swagger.io/v2/user/{username} \
-  -H 'Accept: application/xml'
-
-```
-
-```http
-GET http://petstore.swagger.io/v2/user/{username} HTTP/1.1
-Host: petstore.swagger.io
-Accept: application/xml
-
-```
-
-```javascript
-
-const headers = {
-  'Accept':'application/xml'
-};
-
-fetch('http://petstore.swagger.io/v2/user/{username}',
-{
-  method: 'GET',
-
-  headers: headers
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
-
-```ruby
-require 'rest-client'
-require 'json'
-
-headers = {
-  'Accept' => 'application/xml'
-}
-
-result = RestClient.get 'http://petstore.swagger.io/v2/user/{username}',
-  params: {
-  }, headers: headers
-
-p JSON.parse(result)
-
-```
-
-```python
-import requests
-headers = {
-  'Accept': 'application/xml'
-}
-
-r = requests.get('http://petstore.swagger.io/v2/user/{username}', headers = headers)
-
-print(r.json())
-
-```
-
-```php
-<?php
-
-require 'vendor/autoload.php';
-
-$headers = array(
-    'Accept' => 'application/xml',
-);
-
-$client = new \GuzzleHttp\Client();
-
-// Define array of request body.
-$request_body = array();
-
-try {
-    $response = $client->request('GET','http://petstore.swagger.io/v2/user/{username}', array(
-        'headers' => $headers,
-        'json' => $request_body,
-       )
-    );
-    print_r($response->getBody()->getContents());
- }
- catch (\GuzzleHttp\Exception\BadResponseException $e) {
-    // handle exception or api errors.
-    print_r($e->getMessage());
- }
-
- // ...
-
-```
-
-```java
-URL obj = new URL("http://petstore.swagger.io/v2/user/{username}");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("GET");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
-}
-in.close();
-System.out.println(response.toString());
-
-```
-
-```go
-package main
-
-import (
-       "bytes"
-       "net/http"
-)
-
-func main() {
-
-    headers := map[string][]string{
-        "Accept": []string{"application/xml"},
-    }
-
-    data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("GET", "http://petstore.swagger.io/v2/user/{username}", data)
-    req.Header = headers
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    // ...
-}
-
-```
-
-`GET /user/{username}`
-
-*Get user by user name*
-
-<h3 id="getuserbyname-parameters">Parameters</h3>
-
-|Name|In|Type|Required|Description|
-|---|---|---|---|---|
-|username|path|string|true|The name that needs to be fetched. Use user1 for testing. |
-
-> Example responses
-
-> 200 Response
-
-```xml
-<?xml version="1.0" encoding="UTF-8" ?>
-<User>
-  <id>0</id>
-  <username>string</username>
-  <firstName>string</firstName>
-  <lastName>string</lastName>
-  <email>string</email>
-  <password>string</password>
-  <phone>string</phone>
-  <userStatus>0</userStatus>
-</User>
-```
-
-```json
-{
-  "id": 0,
-  "username": "string",
-  "firstName": "string",
-  "lastName": "string",
-  "email": "string",
-  "password": "string",
-  "phone": "string",
-  "userStatus": 0
-}
-```
-
-<h3 id="getuserbyname-responses">Responses</h3>
-
-|Status|Meaning|Description|Schema|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|successful operation|[User](#schemauser)|
-|400|[Bad Request](https://tools.ietf.org/html/rfc7231#section-6.5.1)|Invalid username supplied|None|
-|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|User not found|None|
-
-<aside class="success">
-This operation does not require authentication
-</aside>
-
-## updateUser
-
-<a id="opIdupdateUser"></a>
-
-> Code samples
-
-```shell
-# You can also use wget
-curl -X PUT http://petstore.swagger.io/v2/user/{username} \
-  -H 'Content-Type: application/json'
-
-```
-
-```http
-PUT http://petstore.swagger.io/v2/user/{username} HTTP/1.1
-Host: petstore.swagger.io
-Content-Type: application/json
-
-```
-
-```javascript
-const inputBody = '{
-  "id": 0,
-  "username": "string",
-  "firstName": "string",
-  "lastName": "string",
-  "email": "string",
-  "password": "string",
-  "phone": "string",
-  "userStatus": 0
-}';
-const headers = {
-  'Content-Type':'application/json'
-};
-
-fetch('http://petstore.swagger.io/v2/user/{username}',
-{
-  method: 'PUT',
-  body: inputBody,
-  headers: headers
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
-
-```ruby
-require 'rest-client'
-require 'json'
-
-headers = {
-  'Content-Type' => 'application/json'
-}
-
-result = RestClient.put 'http://petstore.swagger.io/v2/user/{username}',
-  params: {
-  }, headers: headers
-
-p JSON.parse(result)
-
-```
-
-```python
-import requests
-headers = {
-  'Content-Type': 'application/json'
-}
-
-r = requests.put('http://petstore.swagger.io/v2/user/{username}', headers = headers)
-
-print(r.json())
-
-```
-
-```php
-<?php
-
-require 'vendor/autoload.php';
-
-$headers = array(
-    'Content-Type' => 'application/json',
-);
-
-$client = new \GuzzleHttp\Client();
-
-// Define array of request body.
-$request_body = array();
-
-try {
-    $response = $client->request('PUT','http://petstore.swagger.io/v2/user/{username}', array(
-        'headers' => $headers,
-        'json' => $request_body,
-       )
-    );
-    print_r($response->getBody()->getContents());
- }
- catch (\GuzzleHttp\Exception\BadResponseException $e) {
-    // handle exception or api errors.
-    print_r($e->getMessage());
- }
-
- // ...
-
-```
-
-```java
-URL obj = new URL("http://petstore.swagger.io/v2/user/{username}");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("PUT");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
-}
-in.close();
-System.out.println(response.toString());
-
-```
-
-```go
-package main
-
-import (
-       "bytes"
-       "net/http"
-)
-
-func main() {
-
-    headers := map[string][]string{
-        "Content-Type": []string{"application/json"},
-    }
-
-    data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("PUT", "http://petstore.swagger.io/v2/user/{username}", data)
-    req.Header = headers
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    // ...
-}
-
-```
-
-`PUT /user/{username}`
-
-*Updated user*
-
-This can only be done by the logged in user.
-
-> Body parameter
-
-```json
-{
-  "id": 0,
-  "username": "string",
-  "firstName": "string",
-  "lastName": "string",
-  "email": "string",
-  "password": "string",
-  "phone": "string",
-  "userStatus": 0
-}
-```
-
-<h3 id="updateuser-parameters">Parameters</h3>
-
-|Name|In|Type|Required|Description|
-|---|---|---|---|---|
-|username|path|string|true|name that need to be updated|
-|body|body|[User](#schemauser)|true|Updated user object|
-
-<h3 id="updateuser-responses">Responses</h3>
-
-|Status|Meaning|Description|Schema|
-|---|---|---|---|
-|400|[Bad Request](https://tools.ietf.org/html/rfc7231#section-6.5.1)|Invalid user supplied|None|
-|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|User not found|None|
-
-<aside class="success">
-This operation does not require authentication
-</aside>
-
-## deleteUser
-
-<a id="opIddeleteUser"></a>
-
-> Code samples
-
-```shell
-# You can also use wget
-curl -X DELETE http://petstore.swagger.io/v2/user/{username}
-
-```
-
-```http
-DELETE http://petstore.swagger.io/v2/user/{username} HTTP/1.1
-Host: petstore.swagger.io
-
-```
-
-```javascript
-
-fetch('http://petstore.swagger.io/v2/user/{username}',
-{
-  method: 'DELETE'
-
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
-
-```ruby
-require 'rest-client'
-require 'json'
-
-result = RestClient.delete 'http://petstore.swagger.io/v2/user/{username}',
-  params: {
-  }
-
-p JSON.parse(result)
-
-```
-
-```python
-import requests
-
-r = requests.delete('http://petstore.swagger.io/v2/user/{username}')
-
-print(r.json())
-
-```
-
-```php
-<?php
-
-require 'vendor/autoload.php';
-
-$client = new \GuzzleHttp\Client();
-
-// Define array of request body.
-$request_body = array();
-
-try {
-    $response = $client->request('DELETE','http://petstore.swagger.io/v2/user/{username}', array(
-        'headers' => $headers,
-        'json' => $request_body,
-       )
-    );
-    print_r($response->getBody()->getContents());
- }
- catch (\GuzzleHttp\Exception\BadResponseException $e) {
-    // handle exception or api errors.
-    print_r($e->getMessage());
- }
-
- // ...
-
-```
-
-```java
-URL obj = new URL("http://petstore.swagger.io/v2/user/{username}");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("DELETE");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
-}
-in.close();
-System.out.println(response.toString());
-
-```
-
-```go
-package main
-
-import (
-       "bytes"
-       "net/http"
-)
-
-func main() {
-
-    data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("DELETE", "http://petstore.swagger.io/v2/user/{username}", data)
-    req.Header = headers
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    // ...
-}
-
-```
-
-`DELETE /user/{username}`
-
-*Delete user*
-
-This can only be done by the logged in user.
-
-<h3 id="deleteuser-parameters">Parameters</h3>
-
-|Name|In|Type|Required|Description|
-|---|---|---|---|---|
-|username|path|string|true|The name that needs to be deleted|
-
-<h3 id="deleteuser-responses">Responses</h3>
-
-|Status|Meaning|Description|Schema|
-|---|---|---|---|
-|400|[Bad Request](https://tools.ietf.org/html/rfc7231#section-6.5.1)|Invalid username supplied|None|
-|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|User not found|None|
-
-<aside class="success">
-This operation does not require authentication
+|*anonymous*|[[AltMarket.Api.AccountAssetResponse](#schemaapilibrary.api.accountassetresponse)]|false|none|none|
+|» asset|string|false|none|none|
+|» totalBalance|number(double)|false|none|none|
+|» inOrder|number(double)|false|none|none|
+|» availableBalance|number(double)|false|none|none|
+
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+HMAC Key/Sign
 </aside>
 
 # Schemas
 
-<h2 id="tocS_Order">Order</h2>
-<!-- backwards compatibility -->
-<a id="schemaorder"></a>
-<a id="schema_Order"></a>
-<a id="tocSorder"></a>
-<a id="tocsorder"></a>
+<h2 id="tocS_AltMarket.Api.AssetResponse">AltMarket.Api.AssetResponse</h2>
+
+<a id="schemaapilibrary.api.assetresponse"></a>
+<a id="schema_AltMarket.Api.AssetResponse"></a>
+<a id="tocSapilibrary.api.assetresponse"></a>
+<a id="tocsapilibrary.api.assetresponse"></a>
 
 ```json
 {
-  "id": 0,
-  "petId": 0,
-  "quantity": 0,
-  "shipDate": "2020-03-30T14:38:05Z",
-  "status": "placed",
-  "complete": false
+  "id": "string",
+  "can_deposit": true,
+  "can_withdraw": true,
+  "image_url": "string",
+  "asset_name": "string",
+  "withdrawal_fee": 0,
+  "scale": 0
 }
 
 ```
@@ -3950,124 +1968,60 @@ This operation does not require authentication
 
 |Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|
-|id|integer(int64)|false|none|none|
-|petId|integer(int64)|false|none|none|
-|quantity|integer(int32)|false|none|none|
-|shipDate|string(date-time)|false|none|none|
-|status|string|false|none|Order Status|
-|complete|boolean|false|none|none|
+|id|string|false|none|none|
+|can_deposit|boolean|false|none|none|
+|can_withdraw|boolean|false|none|none|
+|image_url|string|false|none|none|
+|asset_name|string|false|none|none|
+|withdrawal_fee|number(double)|false|none|none|
+|scale|integer(int32)|false|none|none|
 
-#### Enumerated Values
+<h2 id="tocS_AltMarket.Api.InfoResponse">AltMarket.Api.InfoResponse</h2>
 
-|Property|Value|
-|---|---|
-|status|placed|
-|status|approved|
-|status|delivered|
-
-<h2 id="tocS_Category">Category</h2>
-<!-- backwards compatibility -->
-<a id="schemacategory"></a>
-<a id="schema_Category"></a>
-<a id="tocScategory"></a>
-<a id="tocscategory"></a>
+<a id="schemaapilibrary.api.inforesponse"></a>
+<a id="schema_AltMarket.Api.InfoResponse"></a>
+<a id="tocSapilibrary.api.inforesponse"></a>
+<a id="tocsapilibrary.api.inforesponse"></a>
 
 ```json
 {
-  "id": 0,
-  "name": "string"
-}
-
-```
-
-### Properties
-
-|Name|Type|Required|Restrictions|Description|
-|---|---|---|---|---|
-|id|integer(int64)|false|none|none|
-|name|string|false|none|none|
-
-<h2 id="tocS_User">User</h2>
-<!-- backwards compatibility -->
-<a id="schemauser"></a>
-<a id="schema_User"></a>
-<a id="tocSuser"></a>
-<a id="tocsuser"></a>
-
-```json
-{
-  "id": 0,
-  "username": "string",
-  "firstName": "string",
-  "lastName": "string",
-  "email": "string",
-  "password": "string",
-  "phone": "string",
-  "userStatus": 0
-}
-
-```
-
-### Properties
-
-|Name|Type|Required|Restrictions|Description|
-|---|---|---|---|---|
-|id|integer(int64)|false|none|none|
-|username|string|false|none|none|
-|firstName|string|false|none|none|
-|lastName|string|false|none|none|
-|email|string|false|none|none|
-|password|string|false|none|none|
-|phone|string|false|none|none|
-|userStatus|integer(int32)|false|none|User Status|
-
-<h2 id="tocS_Tag">Tag</h2>
-<!-- backwards compatibility -->
-<a id="schematag"></a>
-<a id="schema_Tag"></a>
-<a id="tocStag"></a>
-<a id="tocstag"></a>
-
-```json
-{
-  "id": 0,
-  "name": "string"
-}
-
-```
-
-### Properties
-
-|Name|Type|Required|Restrictions|Description|
-|---|---|---|---|---|
-|id|integer(int64)|false|none|none|
-|name|string|false|none|none|
-
-<h2 id="tocS_Pet">Pet</h2>
-<!-- backwards compatibility -->
-<a id="schemapet"></a>
-<a id="schema_Pet"></a>
-<a id="tocSpet"></a>
-<a id="tocspet"></a>
-
-```json
-{
-  "id": 0,
-  "category": {
-    "id": 0,
-    "name": "string"
-  },
-  "name": "doggie",
-  "photoUrls": [
-    "string"
-  ],
-  "tags": [
-    {
-      "id": 0,
-      "name": "string"
+  "serverTime": 0,
+  "pairs": {
+    "property1": {
+      "baseAsset": "string",
+      "quoteAsset": "string",
+      "minPrice": 0,
+      "maxPrice": 0,
+      "minAmount": 0,
+      "hidden": 0,
+      "fee": 0,
+      "makerFee": 0,
+      "makerFeeLimit": 0,
+      "takerFee": 0,
+      "takerFeeLimit": 0,
+      "priceScale": 0,
+      "amountScale": 0,
+      "status": "Open"
+    },
+    "property2": {
+      "baseAsset": "string",
+      "quoteAsset": "string",
+      "minPrice": 0,
+      "maxPrice": 0,
+      "minAmount": 0,
+      "hidden": 0,
+      "fee": 0,
+      "makerFee": 0,
+      "makerFeeLimit": 0,
+      "takerFee": 0,
+      "takerFeeLimit": 0,
+      "priceScale": 0,
+      "amountScale": 0,
+      "status": "Open"
     }
-  ],
-  "status": "available"
+  },
+  "plaidPublicKey": "string",
+  "environment": "string"
 }
 
 ```
@@ -4076,33 +2030,86 @@ This operation does not require authentication
 
 |Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|
-|id|integer(int64)|false|none|none|
-|category|[Category](#schemacategory)|false|none|none|
-|name|string|true|none|none|
-|photoUrls|[string]|true|none|none|
-|tags|[[Tag](#schematag)]|false|none|none|
-|status|string|false|none|pet status in the store|
+|serverTime|integer(int64)|false|none|none|
+|pairs|object|false|none|none|
+|» **additionalProperties**|[AltMarket.Api.MarketInfo](#schemaapilibrary.api.marketinfo)|false|none|none|
+|plaidPublicKey|string|false|none|none|
+|environment|string|false|none|none|
+
+<h2 id="tocS_AltMarket.Api.MarketInfo">AltMarket.Api.MarketInfo</h2>
+
+<a id="schemaapilibrary.api.marketinfo"></a>
+<a id="schema_AltMarket.Api.MarketInfo"></a>
+<a id="tocSapilibrary.api.marketinfo"></a>
+<a id="tocsapilibrary.api.marketinfo"></a>
+
+```json
+{
+  "baseAsset": "string",
+  "quoteAsset": "string",
+  "minPrice": 0,
+  "maxPrice": 0,
+  "minAmount": 0,
+  "hidden": 0,
+  "fee": 0,
+  "makerFee": 0,
+  "makerFeeLimit": 0,
+  "takerFee": 0,
+  "takerFeeLimit": 0,
+  "priceScale": 0,
+  "amountScale": 0,
+  "status": "Open"
+}
+
+```
+
+### Properties
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+|baseAsset|string|false|none|none|
+|quoteAsset|string|false|none|none|
+|minPrice|number(double)|false|none|none|
+|maxPrice|number(double)|false|none|none|
+|minAmount|number(double)|false|none|none|
+|hidden|integer(int32)|false|none|none|
+|fee|number(double)|false|none|none|
+|makerFee|number(double)|false|none|none|
+|makerFeeLimit|number(double)|false|none|none|
+|takerFee|number(double)|false|none|none|
+|takerFeeLimit|number(double)|false|none|none|
+|priceScale|integer(int32)|false|none|none|
+|amountScale|integer(int32)|false|none|none|
+|status|string|false|none|none|
 
 #### Enumerated Values
 
 |Property|Value|
 |---|---|
-|status|available|
-|status|pending|
-|status|sold|
+|status|Open|
+|status|Halted|
+|status|Paused|
 
-<h2 id="tocS_ApiResponse">ApiResponse</h2>
-<!-- backwards compatibility -->
-<a id="schemaapiresponse"></a>
-<a id="schema_ApiResponse"></a>
-<a id="tocSapiresponse"></a>
-<a id="tocsapiresponse"></a>
+<h2 id="tocS_AltMarket.Api.OrderRequest">AltMarket.Api.OrderRequest</h2>
+
+<a id="schemaapilibrary.api.orderrequest"></a>
+<a id="schema_AltMarket.Api.OrderRequest"></a>
+<a id="tocSapilibrary.api.orderrequest"></a>
+<a id="tocsapilibrary.api.orderrequest"></a>
 
 ```json
 {
-  "code": 0,
-  "type": "string",
-  "message": "string"
+  "order": {
+    "instrument": "string",
+    "type": "string",
+    "amount": 0,
+    "price": 0,
+    "activationPrice": 0,
+    "isLimit": true,
+    "isStop": true,
+    "side": "Buy",
+    "orderType": "Limit"
+  }
 }
 
 ```
@@ -4111,19 +2118,512 @@ This operation does not require authentication
 
 |Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|
-|code|integer(int32)|false|none|none|
-|type|string|false|none|none|
-|message|string|false|none|none|
+|order|[AltMarket.Api.OrderInfoRequest](#schemaapilibrary.api.orderinforequest)|false|none|none|
 
-<script type="application/ld+json">
+<h2 id="tocS_AltMarket.Api.OrderInfoRequest">AltMarket.Api.OrderInfoRequest</h2>
+
+<a id="schemaapilibrary.api.orderinforequest"></a>
+<a id="schema_AltMarket.Api.OrderInfoRequest"></a>
+<a id="tocSapilibrary.api.orderinforequest"></a>
+<a id="tocsapilibrary.api.orderinforequest"></a>
+
+```json
 {
-  "@context": "http://schema.org/",
-  "@type": "WebAPI",
-  "description": ":dog: :cat: :rabbit: This is a sample server Petstore server.  You can find out more about Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).  For this sample, you can use the api key `special-key` to test the authorization filters.",
-  "documentation": "https://mermade.github.io/shins/asyncapi.html",
-  "termsOfService": "http://swagger.io/terms/",
-  
-  "name": "Swagger Petstore"
+  "instrument": "string",
+  "type": "string",
+  "amount": 0,
+  "price": 0,
+  "activationPrice": 0,
+  "isLimit": true,
+  "isStop": true,
+  "side": "Buy",
+  "orderType": "Limit"
 }
-</script>
+
+```
+
+### Properties
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+|instrument|string|false|none|none|
+|type|string|false|none|none|
+|amount|number(double)|false|none|none|
+|price|number(double)|false|none|none|
+|activationPrice|number(double)|false|none|none|
+|isLimit|boolean|false|none|none|
+|isStop|boolean|false|none|none|
+|side|string|false|read-only|none|
+|orderType|string|false|read-only|none|
+
+#### Enumerated Values
+
+|Property|Value|
+|---|---|
+|side|Buy|
+|side|Sell|
+|orderType|Limit|
+|orderType|Market|
+|orderType|StopLimit|
+|orderType|StopMarket|
+
+<h2 id="tocS_AltMarket.Api.OrderResponse">AltMarket.Api.OrderResponse</h2>
+
+<a id="schemaapilibrary.api.orderresponse"></a>
+<a id="schema_AltMarket.Api.OrderResponse"></a>
+<a id="tocSapilibrary.api.orderresponse"></a>
+<a id="tocsapilibrary.api.orderresponse"></a>
+
+```json
+{
+  "order": {
+    "orderId": "string",
+    "total": 0,
+    "orderType": "Limit",
+    "commission": 0,
+    "createdAt": "2020-06-04T09:48:43Z",
+    "unitsFilled": 0,
+    "isPending": true,
+    "status": "Working",
+    "type": "string",
+    "amount": 0,
+    "price": 0,
+    "stopPrice": 0,
+    "isLimit": true,
+    "instrument": "string",
+    "side": "Buy"
+  }
+}
+
+```
+
+### Properties
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+|order|[AltMarket.Api.OrderInfoResponse](#schemaapilibrary.api.orderinforesponse)|false|none|none|
+
+<h2 id="tocS_AltMarket.Api.OrderInfoResponse">AltMarket.Api.OrderInfoResponse</h2>
+
+<a id="schemaapilibrary.api.orderinforesponse"></a>
+<a id="schema_AltMarket.Api.OrderInfoResponse"></a>
+<a id="tocSapilibrary.api.orderinforesponse"></a>
+<a id="tocsapilibrary.api.orderinforesponse"></a>
+
+```json
+{
+  "orderId": "string",
+  "total": 0,
+  "orderType": "Limit",
+  "commission": 0,
+  "createdAt": "2020-06-04T09:48:43Z",
+  "unitsFilled": 0,
+  "isPending": true,
+  "status": "Working",
+  "type": "string",
+  "amount": 0,
+  "price": 0,
+  "stopPrice": 0,
+  "isLimit": true,
+  "instrument": "string",
+  "side": "Buy"
+}
+
+```
+
+### Properties
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+|orderId|string|false|none|none|
+|total|number(double)|false|none|none|
+|orderType|string|false|none|none|
+|commission|number(double)|false|none|none|
+|createdAt|string(date-time)|false|none|none|
+|unitsFilled|number(double)|false|none|none|
+|isPending|boolean|false|none|none|
+|status|string|false|none|none|
+|type|string|false|none|none|
+|amount|number(double)|false|none|none|
+|price|number(double)|false|none|none|
+|stopPrice|number(double)|false|none|none|
+|isLimit|boolean|false|none|none|
+|instrument|string|false|none|none|
+|side|string|false|none|none|
+
+#### Enumerated Values
+
+|Property|Value|
+|---|---|
+|orderType|Limit|
+|orderType|Market|
+|orderType|StopLimit|
+|orderType|StopMarket|
+|status|Working|
+|status|Rejected|
+|status|Cancelled|
+|status|Completed|
+|side|Buy|
+|side|Sell|
+
+<h2 id="tocS_AltMarket.Http.Paging">AltMarket.Http.Paging</h2>
+
+<a id="schemaqoden.http.paging"></a>
+<a id="schema_AltMarket.Http.Paging"></a>
+<a id="tocSqoden.http.paging"></a>
+<a id="tocsqoden.http.paging"></a>
+
+```json
+{
+  "page": 0,
+  "per_page": 0,
+  "total": 0
+}
+
+```
+
+### Properties
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+|page|integer(int32)|false|none|none|
+|per_page|integer(int32)|false|none|none|
+|total|integer(int32)|false|none|none|
+
+<h2 id="tocS_AltMarket.Account.TradeHistoryItem">AltMarket.Account.TradeHistoryItem</h2>
+
+<a id="schemaqodex.account.tradehistoryitem"></a>
+<a id="schema_AltMarket.Account.TradeHistoryItem"></a>
+<a id="tocSqodex.account.tradehistoryitem"></a>
+<a id="tocsqodex.account.tradehistoryitem"></a>
+
+```json
+{
+  "tradeSeq": 0,
+  "tradeTime": "2020-06-04T09:48:43Z",
+  "amount": 0,
+  "executionPrice": 0,
+  "instrument": "string",
+  "side": "Buy",
+  "commission": 0
+}
+
+```
+
+### Properties
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+|tradeSeq|integer(int64)|false|none|none|
+|tradeTime|string(date-time)|false|none|none|
+|amount|number(double)|false|none|none|
+|executionPrice|number(double)|false|none|none|
+|instrument|string|false|none|none|
+|side|string|false|none|none|
+|commission|number(double)|false|none|none|
+
+#### Enumerated Values
+
+|Property|Value|
+|---|---|
+|side|Buy|
+|side|Sell|
+
+<h2 id="tocS_AltMarket.FrontOffice.DepositFundsRequest">AltMarket.FrontOffice.DepositFundsRequest</h2>
+
+<a id="schemamyexchange.frontoffice.depositfundsrequest"></a>
+<a id="schema_AltMarket.FrontOffice.DepositFundsRequest"></a>
+<a id="tocSmyexchange.frontoffice.depositfundsrequest"></a>
+<a id="tocsmyexchange.frontoffice.depositfundsrequest"></a>
+
+```json
+{
+  "assetId": "string"
+}
+
+```
+
+### Properties
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+|assetId|string|false|none|none|
+
+<h2 id="tocS_AltMarket.FrontOffice.DepositFundsResponse">AltMarket.FrontOffice.DepositFundsResponse</h2>
+
+<a id="schemamyexchange.frontoffice.depositfundsresponse"></a>
+<a id="schema_AltMarket.FrontOffice.DepositFundsResponse"></a>
+<a id="tocSmyexchange.frontoffice.depositfundsresponse"></a>
+<a id="tocsmyexchange.frontoffice.depositfundsresponse"></a>
+
+```json
+{
+  "asset": "string",
+  "paymentSystem": "string",
+  "address": "string",
+  "error": "string"
+}
+
+```
+
+### Properties
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+|asset|string|false|none|none|
+|paymentSystem|string|false|none|none|
+|address|string|false|none|none|
+|error|string|false|none|none|
+
+<h2 id="tocS_AltMarket.Api.WithdrawalRequest">AltMarket.Api.WithdrawalRequest</h2>
+
+<a id="schemaapilibrary.api.withdrawalrequest"></a>
+<a id="schema_AltMarket.Api.WithdrawalRequest"></a>
+<a id="tocSapilibrary.api.withdrawalrequest"></a>
+<a id="tocsapilibrary.api.withdrawalrequest"></a>
+
+```json
+{
+  "transferId": "string",
+  "assetId": "string",
+  "amount": 0,
+  "address": "string"
+}
+
+```
+
+### Properties
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+|transferId|string|false|none|none|
+|assetId|string|false|none|none|
+|amount|number(double)|false|none|none|
+|address|string|false|none|none|
+
+<h2 id="tocS_AltMarket.Account.TransferData">AltMarket.Account.TransferData</h2>
+
+<a id="schemaqodex.account.transferdata"></a>
+<a id="schema_AltMarket.Account.TransferData"></a>
+<a id="tocSqodex.account.transferdata"></a>
+<a id="tocsqodex.account.transferdata"></a>
+
+```json
+{
+  "asset": "string",
+  "paymentSystem": "string",
+  "transferId": "string",
+  "type": "Deposit",
+  "status": "AwaitingConfirmation",
+  "amount": "string",
+  "fee": "string",
+  "errorDetails": "string",
+  "createdAt": "2020-06-04T09:48:43Z",
+  "updatedAt": "2020-06-04T09:48:43Z",
+  "txId": "string",
+  "blockchainLink": "string",
+  "errorCode": "string",
+  "confirmations": 0,
+  "confirmationsRequired": 0,
+  "targetAddress": "string"
+}
+
+```
+
+### Properties
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+|asset|string|false|none|none|
+|paymentSystem|string|false|none|none|
+|transferId|string|false|none|none|
+|type|string|false|none|none|
+|status|string|false|none|none|
+|amount|string|false|none|none|
+|fee|string|false|none|none|
+|errorDetails|string|false|none|none|
+|createdAt|string(date-time)|false|none|none|
+|updatedAt|string(date-time)|false|none|none|
+|txId|string|false|none|none|
+|blockchainLink|string|false|none|none|
+|errorCode|string|false|none|none|
+|confirmations|integer(int32)|false|none|none|
+|confirmationsRequired|integer(int32)|false|none|none|
+|targetAddress|string|false|none|none|
+
+#### Enumerated Values
+
+|Property|Value|
+|---|---|
+|type|Deposit|
+|type|Withdrawal|
+|status|AwaitingConfirmation|
+|status|Unused_Pending|
+|status|Completed|
+|status|Failed|
+|status|Unused_PendingCancellation|
+|status|Unused_Canceled|
+|status|Unused_CompletedUpdate|
+|status|Unused_FundsLocked|
+|status|Unused_PaymentSystemError|
+
+<h2 id="tocS_AltMarket.Api.AccountAssetResponse">AltMarket.Api.AccountAssetResponse</h2>
+
+<a id="schemaapilibrary.api.accountassetresponse"></a>
+<a id="schema_AltMarket.Api.AccountAssetResponse"></a>
+<a id="tocSapilibrary.api.accountassetresponse"></a>
+<a id="tocsapilibrary.api.accountassetresponse"></a>
+
+```json
+{
+  "asset": "string",
+  "totalBalance": 0,
+  "inOrder": 0,
+  "availableBalance": 0
+}
+
+```
+
+### Properties
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+|asset|string|false|none|none|
+|totalBalance|number(double)|false|none|none|
+|inOrder|number(double)|false|none|none|
+|availableBalance|number(double)|false|none|none|
+
+<h2 id="tocS_AltMarket.Http.Response_1_System.Collections.Generic.IEnumerable_1_AltMarket.Api.AssetResponse_AltMarket_Version_1.0.0.0_Culture_neutral_PublicKeyToken_null_System.Private.CoreLib_Version_4.0.0.0_Culture_neutral_PublicKeyToken_7cec85d7bea7798e_">AltMarket.Http.Response_1_System.Collections.Generic.IEnumerable_1_AltMarket.Api.AssetResponse_AltMarket_Version_1.0.0.0_Culture_neutral_PublicKeyToken_null_System.Private.CoreLib_Version_4.0.0.0_Culture_neutral_PublicKeyToken_7cec85d7bea7798e_</h2>
+
+<a id="schemaqoden.http.response_1_system.collections.generic.ienumerable_1_apilibrary.api.assetresponse_apilibrary_version_1.0.0.0_culture_neutral_publickeytoken_null_system.private.corelib_version_4.0.0.0_culture_neutral_publickeytoken_7cec85d7bea7798e_"></a>
+<a id="schema_AltMarket.Http.Response_1_System.Collections.Generic.IEnumerable_1_AltMarket.Api.AssetResponse_AltMarket_Version_1.0.0.0_Culture_neutral_PublicKeyToken_null_System.Private.CoreLib_Version_4.0.0.0_Culture_neutral_PublicKeyToken_7cec85d7bea7798e_"></a>
+<a id="tocSqoden.http.response_1_system.collections.generic.ienumerable_1_apilibrary.api.assetresponse_apilibrary_version_1.0.0.0_culture_neutral_publickeytoken_null_system.private.corelib_version_4.0.0.0_culture_neutral_publickeytoken_7cec85d7bea7798e_"></a>
+<a id="tocsqoden.http.response_1_system.collections.generic.ienumerable_1_apilibrary.api.assetresponse_apilibrary_version_1.0.0.0_culture_neutral_publickeytoken_null_system.private.corelib_version_4.0.0.0_culture_neutral_publickeytoken_7cec85d7bea7798e_"></a>
+
+```json
+{
+  "data": [
+    {
+      "id": "string",
+      "can_deposit": true,
+      "can_withdraw": true,
+      "image_url": "string",
+      "asset_name": "string",
+      "withdrawal_fee": 0,
+      "scale": 0
+    }
+  ]
+}
+
+```
+
+### Properties
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+|data|[[AltMarket.Api.AssetResponse](#schemaapilibrary.api.assetresponse)]|false|none|none|
+
+<h2 id="tocS_AltMarket.Http.Response_1_System.Int32_System.Private.CoreLib_Version_4.0.0.0_Culture_neutral_PublicKeyToken_7cec85d7bea7798e_">AltMarket.Http.Response_1_System.Int32_System.Private.CoreLib_Version_4.0.0.0_Culture_neutral_PublicKeyToken_7cec85d7bea7798e_</h2>
+
+<a id="schemaqoden.http.response_1_system.int32_system.private.corelib_version_4.0.0.0_culture_neutral_publickeytoken_7cec85d7bea7798e_"></a>
+<a id="schema_AltMarket.Http.Response_1_System.Int32_System.Private.CoreLib_Version_4.0.0.0_Culture_neutral_PublicKeyToken_7cec85d7bea7798e_"></a>
+<a id="tocSqoden.http.response_1_system.int32_system.private.corelib_version_4.0.0.0_culture_neutral_publickeytoken_7cec85d7bea7798e_"></a>
+<a id="tocsqoden.http.response_1_system.int32_system.private.corelib_version_4.0.0.0_culture_neutral_publickeytoken_7cec85d7bea7798e_"></a>
+
+```json
+{
+  "data": 0
+}
+
+```
+
+### Properties
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+|data|integer(int32)|false|none|none|
+
+<h2 id="tocS_AltMarket.Http.FilteredResponse_1_AltMarket.Api.OrderInfoResponse_AltMarket_Version_1.0.0.0_Culture_neutral_PublicKeyToken_null_">AltMarket.Http.FilteredResponse_1_AltMarket.Api.OrderInfoResponse_AltMarket_Version_1.0.0.0_Culture_neutral_PublicKeyToken_null_</h2>
+
+<a id="schemaqoden.http.filteredresponse_1_apilibrary.api.orderinforesponse_apilibrary_version_1.0.0.0_culture_neutral_publickeytoken_null_"></a>
+<a id="schema_AltMarket.Http.FilteredResponse_1_AltMarket.Api.OrderInfoResponse_AltMarket_Version_1.0.0.0_Culture_neutral_PublicKeyToken_null_"></a>
+<a id="tocSqoden.http.filteredresponse_1_apilibrary.api.orderinforesponse_apilibrary_version_1.0.0.0_culture_neutral_publickeytoken_null_"></a>
+<a id="tocsqoden.http.filteredresponse_1_apilibrary.api.orderinforesponse_apilibrary_version_1.0.0.0_culture_neutral_publickeytoken_null_"></a>
+
+```json
+{
+  "filters": {},
+  "paging": {
+    "page": 0,
+    "per_page": 0,
+    "total": 0
+  },
+  "data": [
+    {
+      "orderId": "string",
+      "total": 0,
+      "orderType": "Limit",
+      "commission": 0,
+      "createdAt": "2020-06-04T09:48:43Z",
+      "unitsFilled": 0,
+      "isPending": true,
+      "status": "Working",
+      "type": "string",
+      "amount": 0,
+      "price": 0,
+      "stopPrice": 0,
+      "isLimit": true,
+      "instrument": "string",
+      "side": "Buy"
+    }
+  ]
+}
+
+```
+
+### Properties
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+|filters|object|false|none|none|
+|paging|[AltMarket.Http.Paging](#schemaqoden.http.paging)|false|none|none|
+|data|[[AltMarket.Api.OrderInfoResponse](#schemaapilibrary.api.orderinforesponse)]|false|none|none|
+
+<h2 id="tocS_AltMarket.Http.FilteredResponse_1_AltMarket.Account.TradeHistoryItem_AltMarket.Account.Data_Version_1.0.0.0_Culture_neutral_PublicKeyToken_null_">AltMarket.Http.FilteredResponse_1_AltMarket.Account.TradeHistoryItem_AltMarket.Account.Data_Version_1.0.0.0_Culture_neutral_PublicKeyToken_null_</h2>
+
+<a id="schemaqoden.http.filteredresponse_1_qodex.account.tradehistoryitem_qodex.account.data_version_1.0.0.0_culture_neutral_publickeytoken_null_"></a>
+<a id="schema_AltMarket.Http.FilteredResponse_1_AltMarket.Account.TradeHistoryItem_AltMarket.Account.Data_Version_1.0.0.0_Culture_neutral_PublicKeyToken_null_"></a>
+<a id="tocSqoden.http.filteredresponse_1_qodex.account.tradehistoryitem_qodex.account.data_version_1.0.0.0_culture_neutral_publickeytoken_null_"></a>
+<a id="tocsqoden.http.filteredresponse_1_qodex.account.tradehistoryitem_qodex.account.data_version_1.0.0.0_culture_neutral_publickeytoken_null_"></a>
+
+```json
+{
+  "filters": {},
+  "paging": {
+    "page": 0,
+    "per_page": 0,
+    "total": 0
+  },
+  "data": [
+    {
+      "tradeSeq": 0,
+      "tradeTime": "2020-06-04T09:48:43Z",
+      "amount": 0,
+      "executionPrice": 0,
+      "instrument": "string",
+      "side": "Buy",
+      "commission": 0
+    }
+  ]
+}
+
+```
+
+### Properties
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+|filters|object|false|none|none|
+|paging|[AltMarket.Http.Paging](#schemaqoden.http.paging)|false|none|none|
+|data|[[AltMarket.Account.TradeHistoryItem](#schemaqodex.account.tradehistoryitem)]|false|none|none|
 
