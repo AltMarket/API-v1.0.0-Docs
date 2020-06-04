@@ -37,6 +37,15 @@ Request signing should be performed as indicated in the Python example.
 > Code samples
 
 ```python
+import requests
+import datetime
+import json
+import hashlib
+import hmac
+
+test_key = "YOUR_API_KEY"
+test_secret = b"YOUR_API_SECRET"
+
 def sign_header(self,secret,payload, is_json):
   if is_json:
     return hmac.new(test_secret, json.dumps(payload).encode('utf-8'), hashlib.sha512).hexdigest().upper()
